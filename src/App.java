@@ -1,17 +1,10 @@
-package src;
-
-import javax.swing.*;
 import java.awt.*;
-import java.sql.*;
-import java.time.LocalDate;
+import java.sql.SQLException;
+import java.util.Map;
+import javax.swing.*;
+import javax.swing.table.AbstractTableModel;
 
 public class App extends JFrame {
-    // Sql
-    static String url = "jdbc:sqlserver://localhost:1433;databaseName=matahari2;encrypt=true;trustServerCertificate=true";
-    static String userName = "testhdr";
-    static String password = "pass123";
-    Connection conn = null;
-
     // User
     String loggedinUserID;
     String loggedinuserNama;
@@ -19,14 +12,7 @@ public class App extends JFrame {
     // Komponen
     private JPanel MainPanel;
     private JPanel Front;
-    private JPanel pageUtama;
     private JPanel Back;
-    private JLabel Judul;
-    private JButton buttonFront;
-    private JButton buttonBack;
-    private JTabbedPane tabbedPane1;
-    private JTextField textField1;
-    private JTextField textFieldFront;
     private JButton registAkunButton;
     private JPanel RegistP;
     private JTextField namaRegist;
@@ -36,143 +22,196 @@ public class App extends JFrame {
     private JTextField IDRegist;
     private JButton backButton;
     private JButton daftarButton;
-    private JPanel Akun;
-    private JButton gantiButton;
-    private JButton gantiButton1;
-    private JButton gantiButton2;
-    private JButton gantiButton3;
-    private JButton gantiButton4;
-    private JLabel akunID;
-    private JLabel akunNama;
-    private JLabel akunEmail;
-    private JLabel akunTelp;
-    private JLabel akunCreated;
-    private JLabel akunAlamat;
-    private JLabel akunTier;
-    private JLabel akunBenefit;
-    private JLabel JudulAkun;
-    private JTextArea ID;
+
+    // --- Main POS UI Components ---
+    private JTable productTable;
+    private JTextArea subtotalTextArea;
+    private JButton calculateButton;
+    private JButton checkoutButton;
+    private JLabel userInfoNameLabel;
+    private JLabel userInfoTierLabel;
+    private ProductTableModel productTableModel;
+
 
     // Card Layout
     private CardLayout c1;
 
+    // Database Handler
+    private DatabaseHandler dbHandler;
+
     // Constrcutor
     public App(){
-        setConnection();
+        createUIComponents();
+        dbHandler = new DatabaseHandler();
+
+        boolean loggedIn = false;
+        while (!loggedIn) {
+            String data = JOptionPane.showInputDialog(null, "Masukkan ID Pelanggan:", "Login", JOptionPane.PLAIN_MESSAGE);
+
+            if (data == null) {
+                dbHandler.closeConnection();
+                System.exit(0);
+                return; 
+            }
+
+            if (data.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(null, "ID tidak boleh kosong.", "Error", JOptionPane.ERROR_MESSAGE);
+                continue; 
+            }
+
+            try {
+                String[] userData = dbHandler.login(data.trim());
+                if (userData == null) {
+                    JOptionPane.showMessageDialog(null, "Data Pelanggan tidak Ditemukan!", "Login Gagal", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    loggedinUserID = userData[0];
+                    loggedinuserNama = userData[1];
+                    loggedIn = true; // Success, exit loop
+                }
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(null, "Database Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                dbHandler.closeConnection();
+                System.exit(1);
+                return;
+            }
+        }
+
+        // --- Main Window Setup (runs only after successful login) ---
         setContentPane(MainPanel);
         setSize(1280, 720);
-        setTitle("Aplikasi Pengurus Database");
+        setTitle("Aplikasi Pengurus Database - Selamat Datang, " + loggedinuserNama);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         c1 = (CardLayout) MainPanel.getLayout();
-        c1.show(MainPanel, "pageUtama");
+        c1.show(MainPanel, "Front"); 
 
-        buttonBack.addActionListener((e) -> c1.show(MainPanel, "Back"));
-        buttonFront.addActionListener((e) -> loginFrontend());
-        registAkunButton.addActionListener((e) -> {c1.show(MainPanel, "regist");});
-        backButton.addActionListener((e) -> c1.show(MainPanel, "pageUtama"));
+        registAkunButton.addActionListener((e) -> c1.show(MainPanel, "regist"));
+        backButton.addActionListener((e) -> c1.show(MainPanel, "Front")); // Back from registration goes to main
         daftarButton.addActionListener((e) -> registPembeli());
-        gantiButton.addActionListener((e) -> gantiInformasiAkun(1));
-        gantiButton1.addActionListener((e) -> gantiInformasiAkun(2));
-        gantiButton2.addActionListener((e) -> gantiInformasiAkun(3));
-        gantiButton3.addActionListener((e) -> gantiInformasiAkun(4));
-        gantiButton4.addActionListener((e) -> gantiInformasiAkun(5));
 
-        tabbedPane1.addChangeListener((e) -> refreshDataPengguna());
+        calculateButton.addActionListener(e -> calculateSubtotal());
+
         setVisible(true);
+
+        // Refresh data once on startup
+        refreshDataPengguna();
+
+        // Close the database connection when the window is closed
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                dbHandler.closeConnection();
+            }
+        });
+    }
+
+    private void createUIComponents() {
+        MainPanel = new JPanel(new CardLayout());
+        Front = new JPanel(new BorderLayout(10, 10));
+        Front.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        Back = new JPanel();
+        RegistP = new JPanel(new GridLayout(0, 2, 5, 5));
+
+        registAkunButton = new JButton("Registrasi Akun Baru");
+        namaRegist = new JTextField();
+        emailRegist = new JTextField();
+        telpRegist = new JTextField();
+        alamatRegist = new JTextField();
+        IDRegist = new JTextField();
+        backButton = new JButton("Back");
+        daftarButton = new JButton("Daftar");
+
+        JPanel topPanel = new JPanel();
+        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
+        userInfoNameLabel = new JLabel("Nama: ");
+        userInfoTierLabel = new JLabel("Tier: ");
+        topPanel.add(userInfoNameLabel);
+        topPanel.add(userInfoTierLabel);
+        topPanel.add(registAkunButton);
+        Front.add(topPanel, BorderLayout.NORTH);
+
+        Object[][] placeholderData = {
+                {"P001-M", "Kemeja Flanel", "M", 150000.0, 0},
+                {"P001-L", "Kemeja Flanel", "L", 150000.0, 0},
+                {"P001-XL", "Kemeja Flanel", "XL", 150000.0, 0},
+                {"P002-30", "Celana Jeans", "30", 250000.0, 0},
+                {"P002-32", "Celana Jeans", "32", 250000.0, 0},
+                {"P003-AS", "Topi", "All Size", 75000.0, 0}
+        };
+        productTableModel = new ProductTableModel(placeholderData);
+        productTable = new JTable(productTableModel);
+        productTable.setRowHeight(25);
+        JScrollPane tableScrollPane = new JScrollPane(productTable);
+        Front.add(tableScrollPane, BorderLayout.CENTER);
+
+        // --- BOTTOM PANEL: Subtotal and Checkout ---
+        JPanel bottomPanel = new JPanel(new BorderLayout(10, 0));
+        subtotalTextArea = new JTextArea(3, 20);
+        subtotalTextArea.setEditable(false);
+        subtotalTextArea.setText("Subtotal: Rp 0.00");
+        calculateButton = new JButton("Hitung Subtotal");
+        checkoutButton = new JButton("Checkout");
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.add(calculateButton);
+        buttonPanel.add(checkoutButton);
+
+        bottomPanel.add(new JScrollPane(subtotalTextArea), BorderLayout.CENTER);
+        bottomPanel.add(buttonPanel, BorderLayout.EAST);
+        Front.add(bottomPanel, BorderLayout.SOUTH);
+
+
+        // --- Registration Page Layout (RegistP) ---
+        RegistP.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        RegistP.add(new JLabel("ID:"));
+        RegistP.add(IDRegist);
+        RegistP.add(new JLabel("Nama:"));
+        RegistP.add(namaRegist);
+        RegistP.add(new JLabel("Email:"));
+        RegistP.add(emailRegist);
+        RegistP.add(new JLabel("No. Telepon:"));
+        RegistP.add(telpRegist);
+        RegistP.add(new JLabel("Alamat:"));
+        RegistP.add(alamatRegist);
+        RegistP.add(backButton);
+        RegistP.add(daftarButton);
+
+        // Add all panels (cards) to the main panel with CardLayout
+        MainPanel.add(Front, "Front");
+        MainPanel.add(RegistP, "regist");
+    }
+
+    private void calculateSubtotal() {
+        double subtotal = 0;
+        
+        if (productTable.isEditing()) {
+            productTable.getCellEditor().stopCellEditing();
+        }
+        for (int i = 0; i < productTableModel.getRowCount(); i++) {
+            double price = (double) productTableModel.getValueAt(i, 3);
+            int quantity = 0;
+            try {
+                quantity = Integer.parseInt(productTableModel.getValueAt(i, 4).toString());
+            } catch (NumberFormatException e) {
+                quantity = 0; 
+            }
+            subtotal += price * quantity;
+        }
+        subtotalTextArea.setText(String.format("Subtotal: Rp %,.2f", subtotal));
     }
 
     private void gantiInformasiAkun(int e){
-        String informasi = JOptionPane.showInputDialog(this, "Masukan Data Pengganti : ");
-
-        if(informasi == null)  return;;
-        if(informasi.isEmpty()) return;
-
-        String query;
-        switch (e){
-            case 1:
-                query = "UPDATE Pelanggan SET id_pelanggan = ? WHERE id_pelanggan = ?";
-                break;
-            case 2:
-                query = "UPDATE Pelanggan SET nama = ? WHERE id_pelanggan = ?";
-                break;
-            case 3:
-                query = "UPDATE Pelanggan SET email = ? WHERE id_pelanggan = ?";
-                break;
-            case 4:
-                query = "UPDATE Pelanggan SET no_telp = ? WHERE id_pelanggan = ?";
-                break;
-            case 5:
-                query = "UPDATE Pelanggan SET alamat_utama = ? WHERE id_pelanggan = ?";
-                break;
-            default:
-                JOptionPane.showMessageDialog(this, "Something went wrong");
-                return;
-        }
-
-        try{
-            PreparedStatement st = conn.prepareStatement(query);
-
-            st.setString(1, informasi);
-            st.setString(2, loggedinUserID);
-            st.executeUpdate();
-
-            if(e == 1) loggedinUserID = informasi;
-            if(e == 2) loggedinuserNama = informasi;
-
-            refreshDataPengguna();
-            st.close();
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage());
-        }
     }
 
     private void refreshDataPengguna(){
-
-        int index = tabbedPane1.getSelectedIndex();
-
-        if(index == 1){
-            try{
-                String query = "SELECT * FROM Pelanggan WHERE id_pelanggan = ?";
-
-                PreparedStatement ps = conn.prepareStatement(query);
-                ps.setString(1, loggedinUserID);
-
-                ResultSet rs = ps.executeQuery();
-                while(rs.next()){
-                    akunID.setText(rs.getString(1));
-                    akunNama.setText(rs.getString(2));
-                    akunEmail.setText(rs.getString(3));
-                    akunTelp.setText(rs.getString(4));
-
-                    Date tanggal = rs.getDate(5);
-                    akunCreated.setText(tanggal.toString());
-
-                    akunAlamat.setText(rs.getString(6));
-
-                    String query2 = "SELECT nama_tier, benefit FROM Tier_Loyalitas WHERE id_tier = ?";
-
-                    PreparedStatement ps2 = conn.prepareStatement(query2);
-                    ps2.setString(1, rs.getString(7));
-
-                    ResultSet rs2 = ps2.executeQuery();
-
-                    while(rs2.next()){
-                        String info = rs.getString(7) + " - " + rs2.getString(1);
-                        akunTier.setText(info);
-                        akunBenefit.setText(rs2.getString(2));
-                    }
-
-                    rs2.close();
-                    ps2.close();
-                }
-
-                rs.close();
-                ps.close();
-
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, e.getMessage());
+        try{
+            Map<String, String> userData = dbHandler.getPelangganData(loggedinUserID);
+            if (userData != null && !userData.isEmpty()) {
+                userInfoNameLabel.setText("Nama: " + userData.get("nama"));
+                userInfoTierLabel.setText("Tier: " + userData.get("tierInfo"));
             }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage());
         }
     }
 
@@ -182,74 +221,73 @@ public class App extends JFrame {
         String email = emailRegist.getText().trim();
         String telp = telpRegist.getText().trim();
         String alamat = alamatRegist.getText().trim();
-        LocalDate tanggal = LocalDate.now();
 
         if(id.isEmpty() || nama.isEmpty() || email.isEmpty() || telp.isEmpty() || alamat.isEmpty()){
             JOptionPane.showMessageDialog(this, "Data tidak boleh kosong");
+            return;
         }
 
-        String query = "INSERT INTO Pelanggan VALUES (?, ?, ?, ?, ?, ?, ?)";
         try{
-            PreparedStatement ps = conn.prepareStatement(query);
-
-            ps.setString(1, id);
-            ps.setString(2, nama);
-            ps.setString(3, email);
-            ps.setString(4, telp);
-            ps.setDate(5, Date.valueOf(tanggal));
-            ps.setString(6, alamat);
-            ps.setString(7, "TR01");
-
-            ps.executeUpdate();
-
-            ps.close();
-
+            dbHandler.registerPembeli(id, nama, email, telp, alamat);
             JOptionPane.showMessageDialog(this, "Akun berhasil ditambahkan!");
-        } catch (Exception e){
+        } catch (SQLException e){
             JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.WARNING_MESSAGE);
         }
     }
 
-    private void setConnection(){
-        try{
-            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-            conn = DriverManager.getConnection(url, userName, password);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error Sql", "Error", JOptionPane.WARNING_MESSAGE);
-        }
-    }
-
-    private void loginFrontend(){
-        String data = textFieldFront.getText().trim();
-        if(data.isEmpty()){
-            JOptionPane.showMessageDialog(this, "ID Kosong");
-            return;
-        }
-
-        try{
-            String query = "Select id_pelanggan, nama From Pelanggan Where id_pelanggan = ?";
-            PreparedStatement st = conn.prepareStatement(query);
-
-            st.setString(1, data);
-            ResultSet rs = st.executeQuery();
-
-            if(!rs.next()){
-                JOptionPane.showMessageDialog(this, "Data Pelanggan tidak Ditemukan!", "Not Found", JOptionPane.INFORMATION_MESSAGE);
-                return;
-            }
-
-            loggedinUserID = rs.getString(1);
-            loggedinuserNama = rs.getString(2);
-
-            st.close();
-        } catch (Exception e){
-            JOptionPane.showMessageDialog(this, e.getMessage());
-            return;
-        }
-        c1.show(MainPanel, "Front");
-    }
+    // This method is no longer needed as login is handled by a dialog in the constructor
+    private void loginFrontend(){}
 
     public static void main(String[] args){
         new App();
+    }
+
+    // Custom TableModel for the Product Table
+    class ProductTableModel extends AbstractTableModel {
+        private final String[] columnNames = {"ID Varian", "Nama Produk", "Varian", "Harga", "Jumlah"};
+        private Object[][] data;
+
+        public ProductTableModel(Object[][] data) {
+            this.data = data;
+        }
+
+        @Override
+        public int getRowCount() {
+            return data.length;
+        }
+
+        @Override
+        public int getColumnCount() {
+            return columnNames.length;
+        }
+
+        @Override
+        public String getColumnName(int col) {
+            return columnNames[col];
+        }
+
+        @Override
+        public Object getValueAt(int rowIndex, int columnIndex) {
+            return data[rowIndex][columnIndex];
+        }
+
+        @Override
+        public Class<?> getColumnClass(int c) {
+            if (c == 3) return Double.class; 
+            if (c == 4) return Integer.class; 
+            return String.class; 
+        }
+
+        @Override
+        public boolean isCellEditable(int rowIndex, int columnIndex) {
+            // Only the "Jumlah" column (index 4) is editable
+            return columnIndex == 4;
+        }
+
+        @Override
+        public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+            data[rowIndex][columnIndex] = aValue;
+            fireTableCellUpdated(rowIndex, columnIndex);
+        }
     }
 }
