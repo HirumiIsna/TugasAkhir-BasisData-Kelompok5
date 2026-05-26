@@ -1,0 +1,94 @@
+# =========================
+# BUILD RESULT
+# =========================
+/build/
+/out/
+/target/
+/dist/
+
+# =========================
+# JAVA
+# =========================
+*.class
+*.jar
+*.war
+*.ear
+hs_err_pid*
+replay_pid*
+
+# =========================
+# IntelliJ IDEA
+# =========================
+.idea/
+*.iml
+*.iws
+out/
+
+# =========================
+# VS CODE
+# =========================
+.vscode/
+
+# =========================
+# ECLIPSE
+# =========================
+.project
+.classpath
+.settings/
+.metadata/
+
+# =========================
+# NETBEANS
+# =========================
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# =========================
+# MAVEN
+# =========================
+/target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# =========================
+# GRADLE
+# =========================
+.gradle/
+/build/
+
+# =========================
+# LOG FILES
+# =========================
+*.log
+
+# =========================
+# OS FILES
+# =========================
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+
+# Linux
+*~
+
+# =========================
+# DATABASE
+# =========================
+*.db
+*.sqlite
+*.sqlite3
+
+# =========================
+# ENVIRONMENT
+# =========================
+.env
