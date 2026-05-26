@@ -2,10 +2,8 @@ package src;
 
 import javax.swing.*;
 import java.awt.*;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.sql.*;
+import java.time.LocalDate;
 
 public class App extends JFrame {
     // Sql
@@ -29,6 +27,16 @@ public class App extends JFrame {
     private JTabbedPane tabbedPane1;
     private JTextField textField1;
     private JTextField textFieldFront;
+    private JButton registAkunButton;
+    private JPanel RegistP;
+    private JTextField namaRegist;
+    private JTextField emailRegist;
+    private JTextField telpRegist;
+    private JTextField alamatRegist;
+    private JTextField IDRegist;
+    private JButton backButton;
+    private JButton daftarButton;
+    private JTextArea ID;
 
     // Card Layout
     private CardLayout c1;
@@ -46,8 +54,44 @@ public class App extends JFrame {
 
         buttonBack.addActionListener((e) -> c1.show(MainPanel, "Back"));
         buttonFront.addActionListener((e) -> loginFrontend());
-
+        registAkunButton.addActionListener((e) -> {c1.show(MainPanel, "regist");});
+        backButton.addActionListener((e) -> c1.show(MainPanel, "pageUtama"));
+        daftarButton.addActionListener((e) -> registPembeli());
         setVisible(true);
+    }
+
+    private void registPembeli(){
+        String id = IDRegist.getText().trim();
+        String nama = namaRegist.getText().trim();
+        String email = emailRegist.getText().trim();
+        String telp = telpRegist.getText().trim();
+        String alamat = alamatRegist.getText().trim();
+        LocalDate tanggal = LocalDate.now();
+
+        if(id.isEmpty() || nama.isEmpty() || email.isEmpty() || telp.isEmpty() || alamat.isEmpty()){
+            JOptionPane.showMessageDialog(this, "Data tidak boleh kosong");
+        }
+
+        String query = "INSERT INTO Pelanggan VALUES (?, ?, ?, ?, ?, ?, ?)";
+        try{
+            PreparedStatement ps = conn.prepareStatement(query);
+
+            ps.setString(1, id);
+            ps.setString(2, nama);
+            ps.setString(3, email);
+            ps.setString(4, telp);
+            ps.setDate(5, Date.valueOf(tanggal));
+            ps.setString(6, alamat);
+            ps.setString(7, "TR01");
+
+            ps.executeUpdate();
+
+            ps.close();
+
+            JOptionPane.showMessageDialog(this, "Akun berhasil ditambahkan!");
+        } catch (Exception e){
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.WARNING_MESSAGE);
+        }
     }
 
     private void setConnection(){
@@ -61,7 +105,10 @@ public class App extends JFrame {
 
     private void loginFrontend(){
         String data = textFieldFront.getText().trim();
-        if(data.isEmpty()) return;
+        if(data.isEmpty()){
+            JOptionPane.showMessageDialog(this, "ID Kosong");
+            return;
+        }
 
         try{
             String query = "Select id_pelanggan, nama From Pelanggan Where id_pelanggan = ?";
@@ -79,6 +126,8 @@ public class App extends JFrame {
                 loggedinUserID = rs.getString(1);
                 loggedinuserNama = rs.getString(2);
             }
+
+            st.close();
         } catch (Exception e){
             JOptionPane.showMessageDialog(this, e.getMessage());
             return;

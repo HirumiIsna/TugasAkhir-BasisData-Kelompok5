@@ -84,24 +84,6 @@
             </constraints>
             <properties/>
           </component>
-          <component id="fcc18" class="javax.swing.JButton" binding="buttonFront">
-            <constraints>
-              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-              <gridbag top="8" left="8" bottom="8" right="8" weightx="1.0" weighty="0.0"/>
-            </constraints>
-            <properties>
-              <background color="-13330213"/>
-              <borderPainted value="false"/>
-              <contentAreaFilled value="true"/>
-              <doubleBuffered value="false"/>
-              <focusPainted value="false"/>
-              <focusable value="false"/>
-              <font name="JetBrains Mono" size="24" style="1"/>
-              <foreground color="-5122"/>
-              <hideActionText value="false"/>
-              <text value="Login Front-End"/>
-            </properties>
-          </component>
           <component id="50d2d" class="javax.swing.JButton" binding="buttonBack">
             <constraints>
               <grid row="2" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -113,10 +95,193 @@
               <contentAreaFilled value="true"/>
               <focusPainted value="false"/>
               <focusable value="false"/>
-              <font name="JetBrains Mono" size="24" style="1"/>
+              <font name="JetBrains Mono" size="16" style="1"/>
               <foreground color="-5122"/>
               <hideActionText value="false"/>
               <text value="Login Back-End"/>
+            </properties>
+          </component>
+          <component id="fcc18" class="javax.swing.JButton" binding="buttonFront">
+            <constraints>
+              <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+              <gridbag top="8" left="8" bottom="8" right="8" weightx="1.0" weighty="0.0"/>
+            </constraints>
+            <properties>
+              <background color="-13330213"/>
+              <borderPainted value="false"/>
+              <contentAreaFilled value="true"/>
+              <doubleBuffered value="false"/>
+              <focusPainted value="false"/>
+              <focusable value="false"/>
+              <font name="JetBrains Mono" size="16" style="1"/>
+              <foreground color="-5122"/>
+              <hideActionText value="false"/>
+              <text value="Login Front-End"/>
+            </properties>
+          </component>
+          <component id="7cf5b" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+              <gridbag weightx="1.0" weighty="0.0"/>
+            </constraints>
+            <properties>
+              <background color="-720897"/>
+              <font size="14"/>
+              <foreground color="-2038299"/>
+              <horizontalAlignment value="0"/>
+              <horizontalTextPosition value="0"/>
+              <text value="Masukan ID Pelanggan"/>
+            </properties>
+          </component>
+          <component id="3e467" class="javax.swing.JButton" binding="registAkunButton" default-binding="true">
+            <constraints>
+              <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <gridbag weightx="0.0" weighty="0.0"/>
+            </constraints>
+            <properties>
+              <background color="-12301861"/>
+              <borderPainted value="false"/>
+              <focusPainted value="false"/>
+              <focusable value="false"/>
+              <foreground color="-1710883"/>
+              <text value="Regist Akun"/>
+            </properties>
+          </component>
+        </children>
+      </grid>
+      <grid id="742bf" binding="RegistP" layout-manager="GridBagLayout">
+        <constraints>
+          <card name="regist"/>
+        </constraints>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <component id="a769d" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+              <gridbag top="5" left="5" bottom="5" right="5" weightx="0.1" weighty="0.0"/>
+            </constraints>
+            <properties>
+              <font size="16"/>
+              <horizontalAlignment value="10"/>
+              <horizontalTextPosition value="11"/>
+              <text value="ID_Akun"/>
+            </properties>
+          </component>
+          <component id="fee75" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+              <gridbag top="5" left="5" bottom="5" right="5" weightx="0.1" weighty="0.0"/>
+            </constraints>
+            <properties>
+              <font size="16"/>
+              <horizontalAlignment value="10"/>
+              <horizontalTextPosition value="11"/>
+              <text value="Nama"/>
+            </properties>
+          </component>
+          <component id="41665" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+              <gridbag top="5" left="5" bottom="5" right="5" weightx="0.1" weighty="0.0"/>
+            </constraints>
+            <properties>
+              <font size="16"/>
+              <horizontalAlignment value="10"/>
+              <horizontalTextPosition value="11"/>
+              <text value="Email"/>
+            </properties>
+          </component>
+          <component id="da258" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+              <gridbag top="5" left="5" bottom="5" right="5" weightx="0.1" weighty="0.0"/>
+            </constraints>
+            <properties>
+              <font size="16"/>
+              <horizontalAlignment value="10"/>
+              <horizontalTextPosition value="11"/>
+              <text value="No_Telp"/>
+            </properties>
+          </component>
+          <component id="c697b" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+              <gridbag top="5" left="5" bottom="5" right="5" weightx="0.1" weighty="0.0"/>
+            </constraints>
+            <properties>
+              <font size="16"/>
+              <horizontalAlignment value="10"/>
+              <horizontalTextPosition value="11"/>
+              <text value="Alamat"/>
+            </properties>
+          </component>
+          <component id="721a7" class="javax.swing.JTextField" binding="namaRegist">
+            <constraints>
+              <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="150" height="-1"/>
+              </grid>
+              <gridbag weightx="0.0" weighty="0.0"/>
+            </constraints>
+            <properties/>
+          </component>
+          <component id="5d401" class="javax.swing.JTextField" binding="emailRegist">
+            <constraints>
+              <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="150" height="-1"/>
+              </grid>
+              <gridbag weightx="0.0" weighty="0.0"/>
+            </constraints>
+            <properties/>
+          </component>
+          <component id="1815e" class="javax.swing.JTextField" binding="telpRegist">
+            <constraints>
+              <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="150" height="-1"/>
+              </grid>
+              <gridbag weightx="0.0" weighty="0.0"/>
+            </constraints>
+            <properties/>
+          </component>
+          <component id="d98cf" class="javax.swing.JTextField" binding="alamatRegist">
+            <constraints>
+              <grid row="4" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="150" height="-1"/>
+              </grid>
+              <gridbag weightx="0.0" weighty="0.0"/>
+            </constraints>
+            <properties/>
+          </component>
+          <component id="59932" class="javax.swing.JTextField" binding="IDRegist">
+            <constraints>
+              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="150" height="-1"/>
+              </grid>
+              <gridbag weightx="1.0" weighty="0.0"/>
+            </constraints>
+            <properties/>
+          </component>
+          <component id="2031c" class="javax.swing.JButton" binding="backButton" default-binding="true">
+            <constraints>
+              <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+              <gridbag weightx="0.0" weighty="0.0"/>
+            </constraints>
+            <properties>
+              <background color="-4579553"/>
+              <borderPainted value="false"/>
+              <foreground color="-1841691"/>
+              <text value="Back"/>
+            </properties>
+          </component>
+          <component id="b318a" class="javax.swing.JButton" binding="daftarButton" default-binding="true">
+            <constraints>
+              <grid row="5" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <gridbag weightx="0.0" weighty="0.0"/>
+            </constraints>
+            <properties>
+              <background color="-13330213"/>
+              <foreground color="-1"/>
+              <text value="Daftar"/>
             </properties>
           </component>
         </children>
