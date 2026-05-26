@@ -1,12 +1,16 @@
 package src;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.*;
 import java.time.LocalDate;
 import src.configLoginSql;
 
 public class App extends JFrame {
+    // Table
+    DefaultTableModel tb1;
+
     // Sql
     static String url = configLoginSql.url;
     static String userName = configLoginSql.userName;
@@ -60,7 +64,6 @@ public class App extends JFrame {
 
     // Constrcutor
     public App(){
-//        setConnection();
         setContentPane(MainPanel);
         setSize(1280, 720);
         setTitle("Aplikasi Pengurus Database");
@@ -81,6 +84,13 @@ public class App extends JFrame {
         gantiButton4.addActionListener((e) -> gantiInformasiAkun(5));
 
         tabbedPane1.addChangeListener((e) -> refreshDataPengguna());
+
+        tb1 = new DefaultTableModel();
+        tb1.addColumn("Tanggal");
+        tb1.addColumn("ID Transaksi");
+        tb1.addColumn("Perubahan Poin");
+
+        table1.setModel(tb1);
         setVisible(true);
     }
 
@@ -130,10 +140,29 @@ public class App extends JFrame {
     }
 
     private void refreshDataPengguna(){
-        System.out.println("Test");
         int index = tabbedPane1.getSelectedIndex();
 
+        if(index == 3){
+            try{
+                String query = "SELECT tanggal, id_transaksi, perubahan_point\n" +
+                        "FROM Poin_History\n" +
+                        "WHERE id_pelanggan = ?\n" +
+                        "ORDER BY tanggal DESC;";
+                PreparedStatement ps = conn.prepareStatement(query);
 
+                ps.setString(1, loggedinUserID);
+                ResultSet rs = ps.executeQuery();
+
+                tb1.setRowCount(0);
+                while(rs.next()){
+                    Date tangg = rs.getDate(1);
+                    String tang = tangg.toString();
+                    tb1.addRow(new Object[]{tang, rs.getString(2), String.valueOf(rs.getInt(3))});
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, e.getMessage());
+            }
+        }
 
         if(index == 4){
             try{
@@ -213,15 +242,6 @@ public class App extends JFrame {
             JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.WARNING_MESSAGE);
         }
     }
-
-//    private void setConnection(){
-//        try{
-//            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-//            conn = DriverManager.getConnection(url, userName, password);
-//        } catch (Exception e) {
-//            JOptionPane.showMessageDialog(this, "Error Sql", "Error", JOptionPane.WARNING_MESSAGE);
-//        }
-//    }
 
     private void loginFrontend(){
         String data = textFieldFront.getText().trim();
