@@ -16,6 +16,8 @@
 hs_err_pid*
 replay_pid*
 
+./src/configLoginSql.java
+
 # =========================
 # IntelliJ IDEA
 # =========================

@@ -4,13 +4,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.sql.*;
 import java.time.LocalDate;
+import src.configLoginSql;
 
 public class App extends JFrame {
     // Sql
-    static String url = "jdbc:sqlserver://localhost:1433;databaseName=matahari2;encrypt=true;trustServerCertificate=true";
-    static String userName = "testhdr";
-    static String password = "pass123";
-    Connection conn = null;
+    static String url = configLoginSql.url;
+    static String userName = configLoginSql.userName;
+    static String password = configLoginSql.password;
+    Connection conn = configLoginSql.setConnection();
 
     // User
     String loggedinUserID;
@@ -51,6 +52,7 @@ public class App extends JFrame {
     private JLabel akunTier;
     private JLabel akunBenefit;
     private JLabel JudulAkun;
+    private JTable table1;
     private JTextArea ID;
 
     // Card Layout
@@ -58,7 +60,7 @@ public class App extends JFrame {
 
     // Constrcutor
     public App(){
-        setConnection();
+//        setConnection();
         setContentPane(MainPanel);
         setSize(1280, 720);
         setTitle("Aplikasi Pengurus Database");
@@ -128,10 +130,12 @@ public class App extends JFrame {
     }
 
     private void refreshDataPengguna(){
-
+        System.out.println("Test");
         int index = tabbedPane1.getSelectedIndex();
 
-        if(index == 1){
+
+
+        if(index == 4){
             try{
                 String query = "SELECT * FROM Pelanggan WHERE id_pelanggan = ?";
 
@@ -210,14 +214,14 @@ public class App extends JFrame {
         }
     }
 
-    private void setConnection(){
-        try{
-            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-            conn = DriverManager.getConnection(url, userName, password);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error Sql", "Error", JOptionPane.WARNING_MESSAGE);
-        }
-    }
+//    private void setConnection(){
+//        try{
+//            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+//            conn = DriverManager.getConnection(url, userName, password);
+//        } catch (Exception e) {
+//            JOptionPane.showMessageDialog(this, "Error Sql", "Error", JOptionPane.WARNING_MESSAGE);
+//        }
+//    }
 
     private void loginFrontend(){
         String data = textFieldFront.getText().trim();

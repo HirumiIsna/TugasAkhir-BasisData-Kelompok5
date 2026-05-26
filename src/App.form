@@ -31,6 +31,45 @@
                 <border type="none"/>
                 <children/>
               </grid>
+              <grid id="2c3aa" layout-manager="BorderLayout" hgap="0" vgap="0">
+                <constraints>
+                  <tabbedpane title="Keranjang"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children/>
+              </grid>
+              <grid id="427b" layout-manager="BorderLayout" hgap="0" vgap="0">
+                <constraints>
+                  <tabbedpane title="Transaksi"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children/>
+              </grid>
+              <grid id="c8d7d" layout-manager="GridBagLayout">
+                <constraints>
+                  <tabbedpane title="Poin History"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <scrollpane id="4fb58">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                      <gridbag weightx="1.0" weighty="1.0"/>
+                    </constraints>
+                    <properties/>
+                    <border type="none"/>
+                    <children>
+                      <component id="31302" class="javax.swing.JTable" binding="table1" default-binding="true">
+                        <constraints/>
+                        <properties/>
+                      </component>
+                    </children>
+                  </scrollpane>
+                </children>
+              </grid>
               <grid id="32d35" binding="Akun" layout-manager="GridBagLayout">
                 <constraints>
                   <tabbedpane title="Akun"/>
@@ -254,6 +293,7 @@
                       <gridbag top="5" left="5" bottom="5" right="5" weightx="0.0" weighty="0.0"/>
                     </constraints>
                     <properties>
+                      <font size="18"/>
                       <horizontalAlignment value="2"/>
                       <horizontalTextPosition value="10"/>
                       <text value="Informasi Akun"/>
