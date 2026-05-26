@@ -36,6 +36,21 @@ public class App extends JFrame {
     private JTextField IDRegist;
     private JButton backButton;
     private JButton daftarButton;
+    private JPanel Akun;
+    private JButton gantiButton;
+    private JButton gantiButton1;
+    private JButton gantiButton2;
+    private JButton gantiButton3;
+    private JButton gantiButton4;
+    private JLabel akunID;
+    private JLabel akunNama;
+    private JLabel akunEmail;
+    private JLabel akunTelp;
+    private JLabel akunCreated;
+    private JLabel akunAlamat;
+    private JLabel akunTier;
+    private JLabel akunBenefit;
+    private JLabel JudulAkun;
     private JTextArea ID;
 
     // Card Layout
@@ -57,7 +72,108 @@ public class App extends JFrame {
         registAkunButton.addActionListener((e) -> {c1.show(MainPanel, "regist");});
         backButton.addActionListener((e) -> c1.show(MainPanel, "pageUtama"));
         daftarButton.addActionListener((e) -> registPembeli());
+        gantiButton.addActionListener((e) -> gantiInformasiAkun(1));
+        gantiButton1.addActionListener((e) -> gantiInformasiAkun(2));
+        gantiButton2.addActionListener((e) -> gantiInformasiAkun(3));
+        gantiButton3.addActionListener((e) -> gantiInformasiAkun(4));
+        gantiButton4.addActionListener((e) -> gantiInformasiAkun(5));
+
+        tabbedPane1.addChangeListener((e) -> refreshDataPengguna());
         setVisible(true);
+    }
+
+    private void gantiInformasiAkun(int e){
+        String informasi = JOptionPane.showInputDialog(this, "Masukan Data Pengganti : ");
+
+        if(informasi == null)  return;;
+        if(informasi.isEmpty()) return;
+
+        String query;
+        switch (e){
+            case 1:
+                query = "UPDATE Pelanggan SET id_pelanggan = ? WHERE id_pelanggan = ?";
+                break;
+            case 2:
+                query = "UPDATE Pelanggan SET nama = ? WHERE id_pelanggan = ?";
+                break;
+            case 3:
+                query = "UPDATE Pelanggan SET email = ? WHERE id_pelanggan = ?";
+                break;
+            case 4:
+                query = "UPDATE Pelanggan SET no_telp = ? WHERE id_pelanggan = ?";
+                break;
+            case 5:
+                query = "UPDATE Pelanggan SET alamat_utama = ? WHERE id_pelanggan = ?";
+                break;
+            default:
+                JOptionPane.showMessageDialog(this, "Something went wrong");
+                return;
+        }
+
+        try{
+            PreparedStatement st = conn.prepareStatement(query);
+
+            st.setString(1, informasi);
+            st.setString(2, loggedinUserID);
+            st.executeUpdate();
+
+            if(e == 1) loggedinUserID = informasi;
+            if(e == 2) loggedinuserNama = informasi;
+
+            refreshDataPengguna();
+            st.close();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage());
+        }
+    }
+
+    private void refreshDataPengguna(){
+
+        int index = tabbedPane1.getSelectedIndex();
+
+        if(index == 1){
+            try{
+                String query = "SELECT * FROM Pelanggan WHERE id_pelanggan = ?";
+
+                PreparedStatement ps = conn.prepareStatement(query);
+                ps.setString(1, loggedinUserID);
+
+                ResultSet rs = ps.executeQuery();
+                while(rs.next()){
+                    akunID.setText(rs.getString(1));
+                    akunNama.setText(rs.getString(2));
+                    akunEmail.setText(rs.getString(3));
+                    akunTelp.setText(rs.getString(4));
+
+                    Date tanggal = rs.getDate(5);
+                    akunCreated.setText(tanggal.toString());
+
+                    akunAlamat.setText(rs.getString(6));
+
+                    String query2 = "SELECT nama_tier, benefit FROM Tier_Loyalitas WHERE id_tier = ?";
+
+                    PreparedStatement ps2 = conn.prepareStatement(query2);
+                    ps2.setString(1, rs.getString(7));
+
+                    ResultSet rs2 = ps2.executeQuery();
+
+                    while(rs2.next()){
+                        String info = rs.getString(7) + " - " + rs2.getString(1);
+                        akunTier.setText(info);
+                        akunBenefit.setText(rs2.getString(2));
+                    }
+
+                    rs2.close();
+                    ps2.close();
+                }
+
+                rs.close();
+                ps.close();
+
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, e.getMessage());
+            }
+        }
     }
 
     private void registPembeli(){
@@ -122,10 +238,8 @@ public class App extends JFrame {
                 return;
             }
 
-            while (rs.next()){
-                loggedinUserID = rs.getString(1);
-                loggedinuserNama = rs.getString(2);
-            }
+            loggedinUserID = rs.getString(1);
+            loggedinuserNama = rs.getString(2);
 
             st.close();
         } catch (Exception e){

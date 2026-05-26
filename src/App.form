@@ -19,17 +19,249 @@
         <border type="none"/>
         <children>
           <tabbedpane id="b13d8" binding="tabbedPane1" default-binding="true">
-            <constraints border-constraint="North"/>
+            <constraints border-constraint="Center"/>
             <properties/>
             <border type="none"/>
             <children>
               <grid id="d8e2f" layout-manager="BorderLayout" hgap="0" vgap="0">
                 <constraints>
-                  <tabbedpane title="Untitled"/>
+                  <tabbedpane title="Katalog"/>
                 </constraints>
                 <properties/>
                 <border type="none"/>
                 <children/>
+              </grid>
+              <grid id="32d35" binding="Akun" layout-manager="GridBagLayout">
+                <constraints>
+                  <tabbedpane title="Akun"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="71049" class="javax.swing.JLabel">
+                    <constraints>
+                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="0.3" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <text value="ID : "/>
+                    </properties>
+                  </component>
+                  <component id="81a86" class="javax.swing.JLabel">
+                    <constraints>
+                      <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="0.3" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <text value="Nama : "/>
+                    </properties>
+                  </component>
+                  <component id="d0faf" class="javax.swing.JLabel">
+                    <constraints>
+                      <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="0.3" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <text value="Email : "/>
+                    </properties>
+                  </component>
+                  <component id="b663a" class="javax.swing.JLabel">
+                    <constraints>
+                      <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="0.3" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <text value="No Telp : "/>
+                    </properties>
+                  </component>
+                  <component id="56d77" class="javax.swing.JLabel">
+                    <constraints>
+                      <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="0.3" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <text value="Akun Dibuat : "/>
+                    </properties>
+                  </component>
+                  <component id="6295e" class="javax.swing.JLabel">
+                    <constraints>
+                      <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="0.3" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <text value="Alamat : "/>
+                    </properties>
+                  </component>
+                  <component id="55c88" class="javax.swing.JLabel">
+                    <constraints>
+                      <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="0.3" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <text value="ID Tier : "/>
+                    </properties>
+                  </component>
+                  <component id="fc416" class="javax.swing.JLabel" binding="akunID">
+                    <constraints>
+                      <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag weightx="1.0" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <text value="Label"/>
+                    </properties>
+                  </component>
+                  <component id="37f5d" class="javax.swing.JLabel" binding="akunNama">
+                    <constraints>
+                      <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag weightx="1.0" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <text value="Label"/>
+                    </properties>
+                  </component>
+                  <component id="428da" class="javax.swing.JLabel" binding="akunEmail">
+                    <constraints>
+                      <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag weightx="1.0" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <text value="Label"/>
+                    </properties>
+                  </component>
+                  <component id="36f3f" class="javax.swing.JLabel" binding="akunTelp">
+                    <constraints>
+                      <grid row="4" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag weightx="1.0" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <text value="Label"/>
+                    </properties>
+                  </component>
+                  <component id="5a571" class="javax.swing.JLabel" binding="akunCreated">
+                    <constraints>
+                      <grid row="5" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag weightx="1.0" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <text value="Label"/>
+                    </properties>
+                  </component>
+                  <component id="145eb" class="javax.swing.JLabel" binding="akunAlamat">
+                    <constraints>
+                      <grid row="6" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag weightx="1.0" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <text value="Label"/>
+                    </properties>
+                  </component>
+                  <component id="d2bef" class="javax.swing.JLabel" binding="akunTier">
+                    <constraints>
+                      <grid row="7" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag weightx="1.0" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <text value="Label"/>
+                    </properties>
+                  </component>
+                  <component id="1cdf0" class="javax.swing.JButton" binding="gantiButton" default-binding="true">
+                    <constraints>
+                      <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="1.0" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <background color="-13330213"/>
+                      <borderPainted value="false"/>
+                      <focusPainted value="false"/>
+                      <focusable value="false"/>
+                      <foreground color="-1"/>
+                      <horizontalAlignment value="0"/>
+                      <text value="Ganti"/>
+                    </properties>
+                  </component>
+                  <component id="3be49" class="javax.swing.JButton" binding="gantiButton1" default-binding="true">
+                    <constraints>
+                      <grid row="2" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="1.0" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <background color="-13330213"/>
+                      <borderPainted value="false"/>
+                      <focusPainted value="false"/>
+                      <focusable value="false"/>
+                      <foreground color="-1"/>
+                      <horizontalAlignment value="0"/>
+                      <text value="Ganti"/>
+                    </properties>
+                  </component>
+                  <component id="4d93e" class="javax.swing.JButton" binding="gantiButton2" default-binding="true">
+                    <constraints>
+                      <grid row="3" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="1.0" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <background color="-13330213"/>
+                      <borderPainted value="false"/>
+                      <focusPainted value="false"/>
+                      <focusable value="false"/>
+                      <foreground color="-1"/>
+                      <horizontalAlignment value="0"/>
+                      <text value="Ganti"/>
+                    </properties>
+                  </component>
+                  <component id="e26f" class="javax.swing.JButton" binding="gantiButton3" default-binding="true">
+                    <constraints>
+                      <grid row="4" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="1.0" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <background color="-13330213"/>
+                      <borderPainted value="false"/>
+                      <focusPainted value="false"/>
+                      <focusable value="false"/>
+                      <foreground color="-1"/>
+                      <horizontalAlignment value="0"/>
+                      <text value="Ganti"/>
+                    </properties>
+                  </component>
+                  <component id="d7cbd" class="javax.swing.JButton" binding="gantiButton4">
+                    <constraints>
+                      <grid row="6" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="1.0" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <background color="-13330213"/>
+                      <borderPainted value="false"/>
+                      <focusPainted value="false"/>
+                      <focusable value="false"/>
+                      <foreground color="-1"/>
+                      <horizontalAlignment value="0"/>
+                      <text value="Ganti"/>
+                    </properties>
+                  </component>
+                  <component id="71e7a" class="javax.swing.JLabel" binding="akunBenefit">
+                    <constraints>
+                      <grid row="7" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag weightx="0.0" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <text value="Label"/>
+                    </properties>
+                  </component>
+                  <component id="69bed" class="javax.swing.JLabel" binding="JudulAkun">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="0.0" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <horizontalAlignment value="2"/>
+                      <horizontalTextPosition value="10"/>
+                      <text value="Informasi Akun"/>
+                      <verticalAlignment value="1"/>
+                      <verticalTextPosition value="1"/>
+                    </properties>
+                  </component>
+                </children>
               </grid>
             </children>
           </tabbedpane>
