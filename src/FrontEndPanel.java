@@ -3,6 +3,8 @@ package src;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.List;
 import java.util.Map;
 
@@ -41,6 +43,7 @@ public class FrontEndPanel extends JPanel {
     private JRadioButton transferRadio, kreditRadio, dompetRadio;
     private JPanel paymentDetailPanel;
 
+    // Constructor sesuai dengan kecocokan di App.java
     public FrontEndPanel(DatabaseHelper dbHelper, String userID, String userName) {
         this.dbHelper = dbHelper;
         this.loggedinUserID = userID;
@@ -65,11 +68,11 @@ public class FrontEndPanel extends JPanel {
         headerPanel.add(logoutButton, BorderLayout.EAST);
         add(headerPanel, BorderLayout.NORTH);
 
-        // Main content with CardLayout
+        // Main content dengan CardLayout
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
 
-        // Create panels
+        // Daftarkan semua panel halaman
         mainPanel.add(createKatalogPanel(), "katalog");
         mainPanel.add(createCartPanel(), "cart");
         mainPanel.add(createCheckoutPanel(), "checkout");
@@ -79,7 +82,7 @@ public class FrontEndPanel extends JPanel {
 
         add(mainPanel, BorderLayout.CENTER);
 
-        // Bottom navigation
+        // Navigasi Bawah
         JPanel navPanel = new JPanel();
         navPanel.setBackground(new Color(240, 240, 240));
 
@@ -108,35 +111,14 @@ public class FrontEndPanel extends JPanel {
         cardLayout.show(mainPanel, "katalog");
     }
 
-    /**
-     * Method logout - kembali ke halaman utama dengan aman
-     * Menghindari ClassCastException
-     */
     private void logout() {
-        // Dapatkan parent frame dari panel ini
-        JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
-
-        if (frame != null) {
-            // Tutup window saat ini
-            frame.dispose();
-
-            // Buat instance App baru di Event Dispatch Thread
-            SwingUtilities.invokeLater(() -> {
-                new App();
-            });
-        } else {
-            // Alternatif: cari parent frame melalui hirarki container
-            Container parent = getParent();
-            while (parent != null && !(parent instanceof JFrame)) {
-                parent = parent.getParent();
-            }
-
-            if (parent instanceof JFrame) {
-                ((JFrame) parent).dispose();
-                SwingUtilities.invokeLater(() -> new App());
-            } else {
-                System.err.println("Cannot find parent frame");
-            }
+        Container parent = getParent();
+        while (parent != null && !(parent instanceof JFrame)) {
+            parent = parent.getParent();
+        }
+        if (parent instanceof JFrame) {
+            ((JFrame) parent).dispose();
+            SwingUtilities.invokeLater(() -> new App());
         }
     }
 
@@ -146,17 +128,14 @@ public class FrontEndPanel extends JPanel {
 
         // Filter panel
         JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-
         filterPanel.add(new JLabel("Kategori:"));
         kategoriFilter = new JComboBox<>();
         kategoriFilter.addItem("Semua");
 
-        // Load categories
         List<Map<String, String>> kategoriList = dbHelper.getAllKategori();
         for (Map<String, String> kat : kategoriList) {
             kategoriFilter.addItem(kat.get("nama_kategori"));
         }
-
         kategoriFilter.addActionListener(e -> refreshProdukTable());
 
         filterPanel.add(new JLabel("Cari:"));
@@ -170,23 +149,24 @@ public class FrontEndPanel extends JPanel {
 
         panel.add(filterPanel, BorderLayout.NORTH);
 
-        // Product table
+        // Tabel Produk
         String[] columns = {"ID Produk", "Nama", "Merk", "Varian", "Ukuran", "Warna", "Harga", "Stok"};
         produkTableModel = new DefaultTableModel(columns, 0) {
             @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
+            public boolean isCellEditable(int row, int column) { return false; }
         };
         produkTable = new JTable(produkTableModel);
         JScrollPane scrollPane = new JScrollPane(produkTable);
         panel.add(scrollPane, BorderLayout.CENTER);
 
-        // Add to cart panel
+        // Action Panel
         JPanel addPanel = new JPanel(new FlowLayout());
         JLabel qtyLabel = new JLabel("Jumlah:");
         JSpinner qtySpinner = new JSpinner(new SpinnerNumberModel(1, 1, 99, 1));
         JButton addToCartBtn = new JButton("Tambah ke Keranjang");
+
+        JButton cekUkuranBtn = new JButton("Cek Ukuran");
+        JButton cekWarnaBtn = new JButton("Cek Warna");
 
         addToCartBtn.addActionListener(e -> {
             int selectedRow = produkTable.getSelectedRow();
@@ -194,14 +174,12 @@ public class FrontEndPanel extends JPanel {
                 int qty = (Integer) qtySpinner.getValue();
                 Map<String, Object> produk = currentProdukList.get(selectedRow);
 
-                // Check stock
                 int stok = (int) produk.get("stok");
                 if (qty > stok) {
                     JOptionPane.showMessageDialog(this, "Stok tidak mencukupi! Stok tersedia: " + stok);
                     return;
                 }
 
-                // Add to cart
                 Map<String, Object> cartItem = new java.util.HashMap<>();
                 cartItem.put("id_produk", produk.get("id_produk"));
                 cartItem.put("id_varian", produk.get("id_varian"));
@@ -220,24 +198,124 @@ public class FrontEndPanel extends JPanel {
             }
         });
 
+        // Tombol Cek Ukuran 
+        cekUkuranBtn.addActionListener(e -> {
+            int selectedRow = produkTable.getSelectedRow();
+            if (selectedRow >= 0) {
+                Map<String, Object> produk = currentProdukList.get(selectedRow);
+                showUkuranDialog((String) produk.get("id_produk"), (String) produk.get("nama"));
+            } else {
+                JOptionPane.showMessageDialog(this, "Pilih produk dari tabel terlebih dahulu!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            }
+        });
+
+        // Tombol Cek Warna 
+        cekWarnaBtn.addActionListener(e -> {
+            int selectedRow = produkTable.getSelectedRow();
+            if (selectedRow >= 0) {
+                Map<String, Object> produk = currentProdukList.get(selectedRow);
+                showWarnaDialog((String) produk.get("id_produk"), (String) produk.get("nama"));
+            } else {
+                JOptionPane.showMessageDialog(this, "Pilih produk dari tabel terlebih dahulu!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            }
+        });
+
         addPanel.add(qtyLabel);
         addPanel.add(qtySpinner);
         addPanel.add(addToCartBtn);
+        addPanel.add(cekUkuranBtn);
+        addPanel.add(cekWarnaBtn);
+
         panel.add(addPanel, BorderLayout.SOUTH);
 
         refreshProdukTable();
-
         return panel;
+    }
+
+    //daftar Ukuran 
+    public void showUkuranDialog(String idProduk, String namaProduk) {
+        String query = "SELECT ukuran, SUM(stok) as total_stok " +
+                "FROM Varian_Produk WHERE id_produk = ? GROUP BY ukuran ORDER BY ukuran";
+        try (PreparedStatement ps = dbHelper.getConn().prepareStatement(query)) {
+            ps.setString(1, idProduk);
+            try (ResultSet rs = ps.executeQuery()) {
+                String[] columns = {"Ukuran Produk", "Total Stok Tersedia"};
+                DefaultTableModel modelUkuran = new DefaultTableModel(columns, 0) {
+                    @Override
+                    public boolean isCellEditable(int row, int column) { return false; }
+                };
+
+                boolean dataDitemukan = false;
+                while (rs.next()) {
+                    dataDitemukan = true;
+                    modelUkuran.addRow(new Object[]{
+                            rs.getString("ukuran"),
+                            rs.getInt("total_stok") + " pcs"
+                    });
+                }
+
+                if (!dataDitemukan) {
+                    JOptionPane.showMessageDialog(this, "Tidak ada data ukuran untuk produk ini.", "Informasi", JOptionPane.INFORMATION_MESSAGE);
+                    return;
+                }
+
+                JTable tablePopup = new JTable(modelUkuran);
+                tablePopup.setRowHeight(22);
+                JScrollPane scrollPane = new JScrollPane(tablePopup);
+                scrollPane.setPreferredSize(new Dimension(400, 180));
+
+                JOptionPane.showMessageDialog(this, scrollPane, "Cek Ketersediaan Ukuran - " + namaProduk, JOptionPane.PLAIN_MESSAGE);
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Gagal memuat ukuran: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    // daftar Warna 
+    public void showWarnaDialog(String idProduk, String namaProduk) {
+        String query = "SELECT warna, SUM(stok) as total_stok " +
+                "FROM Varian_Produk WHERE id_produk = ? GROUP BY warna ORDER BY warna";
+        try (PreparedStatement ps = dbHelper.getConn().prepareStatement(query)) {
+            ps.setString(1, idProduk);
+            try (ResultSet rs = ps.executeQuery()) {
+                String[] columns = {"Pilihan Warna", "Total Stok Tersedia"};
+                DefaultTableModel modelWarna = new DefaultTableModel(columns, 0) {
+                    @Override
+                    public boolean isCellEditable(int row, int column) { return false; }
+                };
+
+                boolean dataDitemukan = false;
+                while (rs.next()) {
+                    dataDitemukan = true;
+                    modelWarna.addRow(new Object[]{
+                            rs.getString("warna"),
+                            rs.getInt("total_stok") + " pcs"
+                    });
+                }
+
+                if (!dataDitemukan) {
+                    JOptionPane.showMessageDialog(this, "Tidak ada data warna untuk produk ini.", "Informasi", JOptionPane.INFORMATION_MESSAGE);
+                    return;
+                }
+
+                JTable tablePopup = new JTable(modelWarna);
+                tablePopup.setRowHeight(22);
+                JScrollPane scrollPane = new JScrollPane(tablePopup);
+                scrollPane.setPreferredSize(new Dimension(400, 180));
+
+                JOptionPane.showMessageDialog(this, scrollPane, "Cek Ketersediaan Warna - " + namaProduk, JOptionPane.PLAIN_MESSAGE);
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Gagal memuat warna: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void refreshProdukTable() {
         produkTableModel.setRowCount(0);
-
         String selectedKategori = (String) kategoriFilter.getSelectedItem();
         String searchText = searchField.getText().toLowerCase();
 
         if (selectedKategori != null && !selectedKategori.equals("Semua")) {
-            // Get kategori ID
             String kategoriId = null;
             List<Map<String, String>> kategoriList = dbHelper.getAllKategori();
             for (Map<String, String> kat : kategoriList) {
@@ -255,7 +333,6 @@ public class FrontEndPanel extends JPanel {
             currentProdukList = dbHelper.getAllProduk();
         }
 
-        // Filter by search text
         if (!searchText.isEmpty()) {
             currentProdukList.removeIf(p -> !((String)p.get("nama")).toLowerCase().contains(searchText) &&
                     !((String)p.get("merk")).toLowerCase().contains(searchText));
@@ -282,17 +359,13 @@ public class FrontEndPanel extends JPanel {
         String[] columns = {"Produk", "Merk", "Ukuran", "Warna", "Harga", "Jumlah", "Subtotal"};
         cartTableModel = new DefaultTableModel(columns, 0) {
             @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
+            public boolean isCellEditable(int row, int column) { return false; }
         };
         cartTable = new JTable(cartTableModel);
         JScrollPane scrollPane = new JScrollPane(cartTable);
         panel.add(scrollPane, BorderLayout.CENTER);
 
-        // Bottom panel
         JPanel bottomPanel = new JPanel(new BorderLayout());
-
         totalHargaLabel = new JLabel("Total: Rp 0");
         totalHargaLabel.setFont(new Font("Arial", Font.BOLD, 16));
 
@@ -354,12 +427,10 @@ public class FrontEndPanel extends JPanel {
                     "Rp " + String.format("%,d", subtotal)
             });
         }
-
         totalHargaLabel.setText("Total: Rp " + String.format("%,d", total));
     }
 
     private void prepareCheckout() {
-        // Calculate total
         currentTotalHarga = 0;
         currentTotalBerat = 0;
         for (Map<String, Object> item : cartItems) {
@@ -379,13 +450,11 @@ public class FrontEndPanel extends JPanel {
 
         int row = 0;
 
-        // Order summary
         JPanel summaryPanel = new JPanel(new BorderLayout());
         summaryPanel.setBorder(BorderFactory.createTitledBorder("Ringkasan Pesanan"));
         JTextArea summaryArea = new JTextArea(10, 40);
         summaryArea.setEditable(false);
 
-        // Fill summary
         StringBuilder sb = new StringBuilder();
         for (Map<String, Object> item : cartItems) {
             sb.append(item.get("nama")).append(" x ").append(item.get("jumlah"))
@@ -403,7 +472,6 @@ public class FrontEndPanel extends JPanel {
         formPanel.add(summaryPanel, gbc);
         row++;
 
-        // Shipping method
         gbc.gridwidth = 1;
         gbc.gridx = 0;
         gbc.gridy = row;
@@ -424,7 +492,6 @@ public class FrontEndPanel extends JPanel {
         formPanel.add(shippingPanel, gbc);
         row++;
 
-        // Address field (for delivery)
         gbc.gridx = 0;
         gbc.gridy = row;
         formPanel.add(new JLabel("Alamat Pengiriman:"), gbc);
@@ -433,7 +500,6 @@ public class FrontEndPanel extends JPanel {
         formPanel.add(alamatField, gbc);
         row++;
 
-        // Store address field (for collect)
         gbc.gridx = 0;
         gbc.gridy = row;
         formPanel.add(new JLabel("Alamat Gerai:"), gbc);
@@ -442,7 +508,6 @@ public class FrontEndPanel extends JPanel {
         formPanel.add(alamatGeraiField, gbc);
         row++;
 
-        // Ekspedisi
         gbc.gridx = 0;
         gbc.gridy = row;
         formPanel.add(new JLabel("Ekspedisi:"), gbc);
@@ -455,7 +520,6 @@ public class FrontEndPanel extends JPanel {
         formPanel.add(ekspedisiCombo, gbc);
         row++;
 
-        // Voucher
         gbc.gridx = 0;
         gbc.gridy = row;
         formPanel.add(new JLabel("Kode Voucher:"), gbc);
@@ -468,7 +532,6 @@ public class FrontEndPanel extends JPanel {
         formPanel.add(applyVoucherBtn, gbc);
         row++;
 
-        // Diskon info
         gbc.gridx = 0;
         gbc.gridy = row;
         formPanel.add(new JLabel("Diskon:"), gbc);
@@ -477,7 +540,6 @@ public class FrontEndPanel extends JPanel {
         formPanel.add(diskonLabel, gbc);
         row++;
 
-        // Total after discount
         gbc.gridx = 0;
         gbc.gridy = row;
         formPanel.add(new JLabel("Total Setelah Diskon:"), gbc);
@@ -527,7 +589,6 @@ public class FrontEndPanel extends JPanel {
 
         JButton proceedPaymentBtn = new JButton("Lanjut ke Pembayaran");
         proceedPaymentBtn.addActionListener(e -> {
-            // Validate form
             if (deliveryRadio.isSelected() && alamatField.getText().trim().isEmpty()) {
                 JOptionPane.showMessageDialog(panel, "Masukkan alamat pengiriman!");
                 return;
@@ -536,7 +597,6 @@ public class FrontEndPanel extends JPanel {
                 JOptionPane.showMessageDialog(panel, "Masukkan alamat gerai!");
                 return;
             }
-
             cardLayout.show(mainPanel, "payment");
         });
 
@@ -546,7 +606,6 @@ public class FrontEndPanel extends JPanel {
         panel.add(formPanel, BorderLayout.CENTER);
         panel.add(buttonPanel, BorderLayout.SOUTH);
 
-        // Update form visibility based on shipping method
         deliveryRadio.addActionListener(e -> {
             alamatField.setEnabled(true);
             alamatGeraiField.setEnabled(false);
@@ -559,9 +618,7 @@ public class FrontEndPanel extends JPanel {
             ekspedisiCombo.setEnabled(false);
         });
 
-        // Initial state
         alamatGeraiField.setEnabled(false);
-
         return panel;
     }
 
@@ -576,7 +633,6 @@ public class FrontEndPanel extends JPanel {
 
         int row = 0;
 
-        // Payment methods
         gbc.gridx = 0;
         gbc.gridy = row;
         formPanel.add(new JLabel("Metode Pembayaran:"), gbc);
@@ -599,7 +655,6 @@ public class FrontEndPanel extends JPanel {
         formPanel.add(paymentMethodPanel, gbc);
         row++;
 
-        // Payment detail panel
         paymentDetailPanel = new JPanel(new GridBagLayout());
         gbc.gridx = 0;
         gbc.gridy = row;
@@ -709,14 +764,12 @@ public class FrontEndPanel extends JPanel {
 
     private void processPayment() {
         try {
-            // Create pengiriman
             String idPengiriman = dbHelper.createPengiriman("Barang belum diambil");
 
             if (deliveryRadio.isSelected()) {
                 String alamat = alamatField.getText().trim();
                 String ekspedisiNama = (String) ekspedisiCombo.getSelectedItem();
 
-                // Get ekspedisi ID
                 String ekspedisiId = null;
                 List<Map<String, String>> ekspedisiList = dbHelper.getAllEkspedisi();
                 for (Map<String, String> eks : ekspedisiList) {
@@ -725,17 +778,14 @@ public class FrontEndPanel extends JPanel {
                         break;
                     }
                 }
-
                 dbHelper.createClickAndDeliver(idPengiriman, alamat, ekspedisiId);
             } else {
                 String alamatGerai = alamatGeraiField.getText().trim();
                 dbHelper.createClickAndCollect(idPengiriman, alamatGerai);
             }
 
-            // Calculate final total
             int finalTotal = currentTotalHarga - currentPotongan;
 
-            // Create transaksi
             String idTransaksi = dbHelper.createTransaksi(loggedinUserID, finalTotal, currentTotalBerat,
                     currentPotongan, idPengiriman, currentVoucherId);
 
@@ -744,7 +794,6 @@ public class FrontEndPanel extends JPanel {
                 return;
             }
 
-            // Add detail transaksi
             for (Map<String, Object> item : cartItems) {
                 String idProduk = (String) item.get("id_produk");
                 String idVarian = (String) item.get("id_varian");
@@ -752,7 +801,6 @@ public class FrontEndPanel extends JPanel {
                 dbHelper.addDetailTransaksi(idTransaksi, idProduk, idVarian, jumlah);
             }
 
-            // Process payment based on selected method
             boolean paymentSuccess = false;
 
             if (transferRadio.isSelected()) {
@@ -777,12 +825,8 @@ public class FrontEndPanel extends JPanel {
             }
 
             if (paymentSuccess) {
-                // Update transaksi status to Berhasil
                 dbHelper.updateStatusTransaksi(idTransaksi, "Berhasil");
-
-                // Clear cart
                 cartItems.clear();
-
                 JOptionPane.showMessageDialog(this, "Pesanan berhasil dibuat!\nID Transaksi: " + idTransaksi);
                 cardLayout.show(mainPanel, "history");
                 refreshOrderHistory();
@@ -803,16 +847,13 @@ public class FrontEndPanel extends JPanel {
         String[] columns = {"ID Transaksi", "Tanggal", "Total Harga", "Status"};
         DefaultTableModel historyModel = new DefaultTableModel(columns, 0) {
             @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
+            public boolean isCellEditable(int row, int column) { return false; }
         };
         JTable historyTable = new JTable(historyModel);
         JScrollPane scrollPane = new JScrollPane(historyTable);
         panel.add(scrollPane, BorderLayout.CENTER);
 
         panel.putClientProperty("historyModel", historyModel);
-
         return panel;
     }
 
@@ -883,11 +924,9 @@ public class FrontEndPanel extends JPanel {
                     sb.append("Kode Pengambilan: ").append(tracking.get("kode_pengambilan")).append("\n");
                     sb.append("Status Pengambilan: ").append(tracking.get("status_pengembalian")).append("\n");
                 }
-
                 resultArea.setText(sb.toString());
             }
         });
-
         return panel;
     }
 }
