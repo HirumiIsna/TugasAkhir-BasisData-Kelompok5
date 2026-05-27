@@ -51,6 +51,31 @@ public class DatabaseHelper {
         return produkList;
     }
 
+    public List<Map<String, Object>> getVarianByProdukId(String idProduk) {
+        List<Map<String, Object>> varianList = new ArrayList<>();
+        String query = "SELECT id_varian, ukuran, warna, harga, stok, berat " +
+                "FROM Varian_Produk WHERE id_produk = ? ORDER BY ukuran, warna";
+
+        try (PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setString(1, idProduk);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> varian = new HashMap<>();
+                    varian.put("id_varian", rs.getString("id_varian"));
+                    varian.put("ukuran", rs.getString("ukuran"));
+                    varian.put("warna", rs.getString("warna"));
+                    varian.put("harga", rs.getInt("harga"));
+                    varian.put("stok", rs.getInt("stok"));
+                    varian.put("berat", rs.getInt("berat"));
+                    varianList.add(varian);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return varianList;
+    }
+
     // Filter produk by kategori
     public List<Map<String, Object>> getProdukByKategori(String idKategori) {
         List<Map<String, Object>> produkList = new ArrayList<>();
@@ -386,8 +411,6 @@ public class DatabaseHelper {
         }
         return trackingInfo;
     }
-
-    // ==================== BACK-END METHODS ====================
 
     // CRUD Produk
     public boolean createProduk(String idProduk, String nama, String deskripsi, String idMerk, String idPemasok) {
