@@ -5,9 +5,9 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 
 public class configLoginSql {
-    static String url = "jdbc:sqlserver://localhost:1433;databaseName=matahari2;encrypt=true;trustServerCertificate=true";
-    static String userName = "testhdr";
-    static String password = "pass123";
+    static String url = "jdbc:sqlserver://localhost:1433;databaseName=matahari100;encrypt=true;trustServerCertificate=true";
+    static String userName = "sa";
+    static String password = "hilmi212";
 
     public static Connection setConnection(){
         try{
