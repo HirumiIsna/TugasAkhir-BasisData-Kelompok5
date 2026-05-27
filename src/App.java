@@ -57,16 +57,78 @@ public class App extends JFrame {
     private JLabel JudulAkun;
     private JTable table1;
     private JTabbedPane tabbedPane2;
-    private JTextField textField2;
-    private JTextField textField3;
-    private JTextField textField4;
     private JTextArea ID;
-    private JTable TabelManagerProduk;
-    private JPanel Panel_TFProduk;
-    private JButton simpanButton;
-    private JButton updateButton;
+
+    //dari sini kebawah atribut front end
+
+    //punyaku (Hilmi)
+    private ManageProduk manageProduk;
+    private ManageVarian manageVarian;
+    private ManageKategori manageKategori;
+    private ManageMerk manageMerk;
+
+    private JTable TabelUmumProduk;
+    private JButton simpanButtonProduk;
+    private JButton updateButtonProduk;
     private JButton deleteButton;
     private JButton refreshDataButton;
+    private JTextField TF_IDProduk;
+    private JPanel IDProduk;
+    private JTextField TF_NamaProduk;
+    private JPanel NamaProduk;
+    private JTextField TF_DeskripsiProduk;
+    private JPanel DeskripsiProduk;
+    private JPanel MerkProduk;
+    private JComboBox CMB_MerkProduk;
+    private JComboBox CMB_KategoriProduk;
+    private JPanel KategoriProduk;
+    private JPanel PemasokProduk;
+    private JComboBox CMB_PemasokProduk;
+    private JPanel ListMerkPanel;
+    private JTable TabelManageMerk;
+    private JTextField TF_IDMerk;
+    private JTextField TF_NamaMerk;
+    private JTextField TF_DeskripsiMerk;
+    private JPanel ListKategoriPanel;
+    private JTable TabelManageKategori;
+    private JTextField TF_VarianProduk;
+    private JComboBox CMB_IDProduk;
+    private JTextField TF_WarnaVarian;
+    private JTextField TF_StokVarian;
+    private JTextField TF_HargaVarian;
+    private JTable TabelManageProduk;
+    private JButton refreshDataButtonProduk;
+    private JButton deleteButtonProduk;
+    private JButton deleteButtonVarian;
+    private JButton updateButtonVarian;
+    private JButton refreshDataButtonVarian;
+    private JButton simpanButtonVarian;
+    private JTable TabelManageVarian;
+    private JButton simpanButtonKategori;
+    private JButton updateButtonKategori;
+    private JButton refreshDataButtonKategori;
+    private JButton deleteButtonKategori;
+    private JButton simpanButtonMerk;
+    private JButton updateButtonMerk;
+    private JButton refreshDataButtonMerk;
+    private JButton deleteButtonMerk;
+    private ManagePemasok managePemasok;
+    private JTextField TF_BeratVarian;
+    private JTextField TF_IDKategori;
+    private JTextField TF_NamaKategori;
+    private JTextField TF_DeskripsiKategori;
+    private JTextField TF_IDPemasok;
+    private JTextField TF_NamaPemasok;
+    private JTextField TF_EmailPemasok;
+    private JTextField TF_TelpPemasok;
+    private JTextField TF_MailPemasok;
+    private JButton updateButtonPemasok;
+    private JTable TabelManagePemasok;
+    private JButton refreshDataButtonPemasok;
+    private JButton deleteButtonPemasok;
+    private JButton simpanButtonPemasok;
+    private JScrollPane JScrollPane;
+    private JTextField TF_UkuranVarian;
 
     // Card Layout
     private CardLayout c1;
@@ -92,9 +154,6 @@ public class App extends JFrame {
         gantiButton3.addActionListener((e) -> gantiInformasiAkun(4));
         gantiButton4.addActionListener((e) -> gantiInformasiAkun(5));
 
-        refreshDataButton.addActionListener((e) -> loadDataProduk());
-        deleteButton.addActionListener((e) -> deleteProduk());
-
         tabbedPane1.addChangeListener((e) -> refreshDataPengguna());
 
         tb1 = new DefaultTableModel();
@@ -103,6 +162,14 @@ public class App extends JFrame {
         tb1.addColumn("Perubahan Poin");
 
         table1.setModel(tb1);
+
+        manageProduk = new ManageProduk(conn);
+        manageVarian = new ManageVarian(conn);
+        manageKategori = new ManageKategori(conn);
+        manageMerk = new ManageMerk(conn);
+        managePemasok = new ManagePemasok(conn);
+
+        manageProduk.initializeComboBox(CMB_MerkProduk, CMB_KategoriProduk, CMB_PemasokProduk);
 
         loadDataProduk();
 
@@ -320,7 +387,13 @@ public class App extends JFrame {
                 });
             }
 
-            TabelManagerProduk.setModel(tbMP);
+            manageProduk.loadDataProduk(TabelManageProduk);
+            manageVarian.loadDataVarian(TabelManageVarian);
+            manageKategori.loadKategori(TabelManageKategori);
+            manageMerk.loadMerk(TabelManageMerk);
+            managePemasok.loadPemasok(TabelManagePemasok);
+
+            TabelUmumProduk.setModel(tbMP);
 
             rs.close();
             ps.close();
@@ -331,16 +404,16 @@ public class App extends JFrame {
     }
     private void deleteProduk() {
 
-        int selectedRow = TabelManagerProduk.getSelectedRow();
+        int selectedRow = TabelUmumProduk.getSelectedRow();
 
         if(selectedRow == -1){
             JOptionPane.showMessageDialog(this,"Pilih data terlebih dahulu");
             return;
         }
 
-        String idProduk = TabelManagerProduk.getValueAt(selectedRow, 0).toString();
+        String idProduk = TabelUmumProduk.getValueAt(selectedRow, 0).toString();
 
-        String idVarian = TabelManagerProduk.getValueAt(selectedRow, 1).toString();
+        String idVarian = TabelUmumProduk.getValueAt(selectedRow, 1).toString();
 
         try {
             String queryDeleteDetail = "DELETE FROM Detail_Transaksi WHERE id_produk = ? AND id_varian = ?";
