@@ -1,10 +1,11 @@
 import java.sql.*;
-import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class DatabaseHandler {
-    private Connection conn;
+    Connection conn;
 
     public DatabaseHandler() {
         conn = DBConfig.getConnection();
@@ -22,19 +23,15 @@ public class DatabaseHandler {
         }
         return null;
     }
-
-    public void registerPembeli(String id, String nama, String email, String telp, String alamat) throws SQLException {
-        String query = "INSERT INTO Pelanggan VALUES (?, ?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement ps = conn.prepareStatement(query)) {
-            ps.setString(1, id);
-            ps.setString(2, nama);
-            ps.setString(3, email);
-            ps.setString(4, telp);
-            ps.setDate(5, Date.valueOf(LocalDate.now()));
-            ps.setString(6, alamat);
-            ps.setString(7, "TR01");
-            ps.executeUpdate();
+    public String[] getKategori() throws SQLException {
+        String query = "SELECT nama_kategori FROM Kategori";
+        List<String> kategoriList = new ArrayList<>();
+        try (ResultSet rs = conn.createStatement().executeQuery(query)) {
+            while (rs.next()) {
+                kategoriList.add(rs.getString(1));
+            }
         }
+        return kategoriList.toArray(new String[0]);
     }
 
     public Map<String, String> getPelangganData(String userId) throws SQLException {
@@ -68,33 +65,8 @@ public class DatabaseHandler {
         return userData;
     }
 
-    public void updatePelanggan(int field, String informasi, String userId) throws SQLException {
-        String query;
-        switch (field) {
-            case 1:
-                query = "UPDATE Pelanggan SET id_pelanggan = ? WHERE id_pelanggan = ?";
-                break;
-            case 2:
-                query = "UPDATE Pelanggan SET nama = ? WHERE id_pelanggan = ?";
-                break;
-            case 3:
-                query = "UPDATE Pelanggan SET email = ? WHERE id_pelanggan = ?";
-                break;
-            case 4:
-                query = "UPDATE Pelanggan SET no_telp = ? WHERE id_pelanggan = ?";
-                break;
-            case 5:
-                query = "UPDATE Pelanggan SET alamat_utama = ? WHERE id_pelanggan = ?";
-                break;
-            default:
-                throw new SQLException("Invalid field index for update");
-        }
-        try (PreparedStatement st = conn.prepareStatement(query)) {
-            st.setString(1, informasi);
-            st.setString(2, userId);
-            st.executeUpdate();
-        }
-    }
+
+
 
     public void closeConnection() {
         try {
