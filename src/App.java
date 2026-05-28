@@ -9,7 +9,7 @@ import src.configLoginSql;
 
 public class App extends JFrame {
     // Table
-    DefaultTableModel tb1;
+    DefaultTableModel tb1, tb2;
 
     // Sql
     static String url = configLoginSql.url;
@@ -57,6 +57,8 @@ public class App extends JFrame {
     private JLabel akunBenefit;
     private JLabel JudulAkun;
     private JTable table1;
+    private JTable table2;
+    private JLabel welcome;
     private JTextArea ID;
 
     // Card Layout
@@ -85,10 +87,15 @@ public class App extends JFrame {
 
         tabbedPane1.addChangeListener((e) -> refreshDataPengguna());
 
-        tb1 = new DefaultTableModel();
-        tb1.addColumn("Tanggal");
-        tb1.addColumn("ID Transaksi");
-        tb1.addColumn("Perubahan Poin");
+        tb1 = new DefaultTableModel(); tb1.addColumn("Tanggal");
+        tb1.addColumn("ID Transaksi"); tb1.addColumn("Perubahan Poin");
+
+        tb2 = new DefaultTableModel();
+        tb2.addColumn("Kategori");
+        tb2.addColumn("Nama"); tb2.addColumn("Merk");
+        tb2.addColumn("Ukuran"); tb2.addColumn("Warna");
+        tb2.addColumn("Stok"); tb2.addColumn("Harga");
+        table2.setModel(tb2);
 
         table1.setModel(tb1);
         setVisible(true);
@@ -139,8 +146,56 @@ public class App extends JFrame {
         }
     }
 
+    private void refreshKatalog(){
+        String query = "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga FROM Varian_Produk vp\n" +
+                "JOIN Produk p ON vp.id_produk = p.id_produk\n" +
+                "JOIN Merk m ON p.id_merk = m.id_merk\n" +
+                "WHERE p.status = 'Tersedia'\n" +
+                "ORDER BY vp.id_produk; ";
+
+        String query2 = "SELECT k.nama_kategori FROM Produk_Mempunyai_Kategori pmk\n" +
+                "JOIN Kategori k ON k.id_kategori = pmk.id_kategori\n" +
+                "WHERE pmk.id_produk = ?;";
+
+        tb2.setRowCount(0);
+        try{
+            PreparedStatement st = conn.prepareStatement(query);
+            ResultSet rs = st.executeQuery();
+
+            while(rs.next()){
+                String id = rs.getString(1);
+
+                PreparedStatement ps2 = conn.prepareStatement(query2);
+                ps2.setString(1, id);
+
+                ResultSet rs2 = ps2.executeQuery();
+
+                StringBuilder kategori = new StringBuilder();
+                while(rs2.next()){
+                    rs2.getString(1);
+                    kategori.append(rs2.getString(1)).append(" ");
+                }
+                String kategoriFull = kategori.toString().trim();
+
+                tb2.addRow(new Object[]{kategoriFull, rs.getString(2), rs.getString(3), rs.getString(4),
+                rs.getString(5), rs.getInt(6), rs.getInt(7)});
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, e.getMessage());
+        }
+
+    }
+
     private void refreshDataPengguna(){
         int index = tabbedPane1.getSelectedIndex();
+
+        if(index == 0){
+            try{
+                refreshKatalog();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, e.getMessage());
+            }
+        }
 
         if(index == 3){
             try{
@@ -264,6 +319,9 @@ public class App extends JFrame {
 
             loggedinUserID = rs.getString(1);
             loggedinuserNama = rs.getString(2);
+
+            welcome.setText("Hai, " + loggedinuserNama);
+            refreshDataPengguna();
 
             st.close();
         } catch (Exception e){

@@ -23,13 +23,39 @@
             <properties/>
             <border type="none"/>
             <children>
-              <grid id="d8e2f" layout-manager="BorderLayout" hgap="0" vgap="0">
+              <grid id="d8e2f" layout-manager="GridBagLayout">
                 <constraints>
                   <tabbedpane title="Katalog"/>
                 </constraints>
                 <properties/>
                 <border type="none"/>
-                <children/>
+                <children>
+                  <component id="20d61" class="javax.swing.JLabel" binding="welcome">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag weightx="0.0" weighty="0.1"/>
+                    </constraints>
+                    <properties>
+                      <font name="JetBrainsMono NFM ExtraBold" size="26"/>
+                      <foreground color="-1"/>
+                      <text value="Hai, ...."/>
+                    </properties>
+                  </component>
+                  <scrollpane id="7f4c1">
+                    <constraints>
+                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                      <gridbag weightx="1.0" weighty="1.0"/>
+                    </constraints>
+                    <properties/>
+                    <border type="none"/>
+                    <children>
+                      <component id="8fef6" class="javax.swing.JTable" binding="table2" default-binding="true">
+                        <constraints/>
+                        <properties/>
+                      </component>
+                    </children>
+                  </scrollpane>
+                </children>
               </grid>
               <grid id="2c3aa" layout-manager="BorderLayout" hgap="0" vgap="0">
                 <constraints>
