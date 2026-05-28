@@ -44,6 +44,22 @@ public class App extends JFrame {
     private JTextField voucherField;
     private JLabel subtotalCheckoutLabel;
     private JLabel bonusTierCheckoutLabel;
+    private JComboBox<String> metodePembayaranComboBox;
+    private JPanel paymentDetailsPanel;
+    private CardLayout paymentDetailsLayout;
+
+    // Komponen Transfer Bank
+    private JTextField transferBankNamaField;
+    private JTextField transferBankNorekField;
+
+    // Komponen E-Money
+    private JTextField eMoneyJenisDompetField;
+    private JTextField eMoneyNoTelpField;
+
+    // Komponen Kredit
+    private JTextField kreditNamaBankField;
+    private JTextField kreditMasaBerlakuField;
+    private JTextField kreditNoKartuField;
 
     private DatabaseHandler dbHandler;
 
@@ -224,7 +240,6 @@ public class App extends JFrame {
         subtotalCheckoutLabel = new JLabel("Rp 0");
         detailsPanel.add(subtotalCheckoutLabel, gbc);
 
-        // Bonus Tier
         gbc.gridx = 0;
         gbc.gridy = 5;
         detailsPanel.add(new JLabel("Bonus Tier:"), gbc);
@@ -232,9 +247,40 @@ public class App extends JFrame {
         bonusTierCheckoutLabel = new JLabel("-");
         detailsPanel.add(bonusTierCheckoutLabel, gbc);
 
-        // Checkout Button
+        // Metode Pembayaran
         gbc.gridx = 0;
         gbc.gridy = 6;
+        detailsPanel.add(new JLabel("Metode Pembayaran:"), gbc);
+        gbc.gridx = 1;
+        metodePembayaranComboBox = new JComboBox<>(new String[]{"Transfer Bank", "E-Money", "Kredit"});
+        detailsPanel.add(metodePembayaranComboBox, gbc);
+
+        // Payment Details Panel (CardLayout)
+        gbc.gridx = 0;
+        gbc.gridy = 7;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.BOTH;
+        paymentDetailsLayout = new CardLayout();
+        paymentDetailsPanel = new JPanel(paymentDetailsLayout);
+
+        // Create panels for each payment method
+        paymentDetailsPanel.add(createTransferBankPanel(), "Transfer Bank");
+        paymentDetailsPanel.add(createEMoneyPanel(), "E-Money");
+        paymentDetailsPanel.add(createKreditPanel(), "Kredit");
+
+        detailsPanel.add(paymentDetailsPanel, gbc);
+
+        metodePembayaranComboBox.addActionListener(e -> {
+            String selectedMethod = (String) metodePembayaranComboBox.getSelectedItem();
+            paymentDetailsLayout.show(paymentDetailsPanel, selectedMethod);
+        });
+        // Show the default panel
+        paymentDetailsLayout.show(paymentDetailsPanel, (String)metodePembayaranComboBox.getSelectedItem());
+
+
+        // Checkout Button
+        gbc.gridx = 0;
+        gbc.gridy = 8;
         gbc.gridwidth = 2;
         gbc.fill = GridBagConstraints.NONE;
         gbc.anchor = GridBagConstraints.CENTER;
@@ -247,6 +293,76 @@ public class App extends JFrame {
 
         return keranjangPanel;
     }
+
+    private JPanel createTransferBankPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(2, 2, 2, 2);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        gbc.gridx = 0; gbc.gridy = 0;
+        panel.add(new JLabel("Nama Bank:"), gbc);
+        gbc.gridx = 1;
+        transferBankNamaField = new JTextField(15);
+        panel.add(transferBankNamaField, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 1;
+        panel.add(new JLabel("No. Rekening:"), gbc);
+        gbc.gridx = 1;
+        transferBankNorekField = new JTextField(15);
+        panel.add(transferBankNorekField, gbc);
+
+        return panel;
+    }
+
+    private JPanel createEMoneyPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(2, 2, 2, 2);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        gbc.gridx = 0; gbc.gridy = 0;
+        panel.add(new JLabel("Jenis Dompet:"), gbc);
+        gbc.gridx = 1;
+        eMoneyJenisDompetField = new JTextField(15);
+        panel.add(eMoneyJenisDompetField, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 1;
+        panel.add(new JLabel("No. Telp:"), gbc);
+        gbc.gridx = 1;
+        eMoneyNoTelpField = new JTextField(15);
+        panel.add(eMoneyNoTelpField, gbc);
+
+        return panel;
+    }
+
+    private JPanel createKreditPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(2, 2, 2, 2);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        gbc.gridx = 0; gbc.gridy = 0;
+        panel.add(new JLabel("Nama Bank:"), gbc);
+        gbc.gridx = 1;
+        kreditNamaBankField = new JTextField(15);
+        panel.add(kreditNamaBankField, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 1;
+        panel.add(new JLabel("Masa Berlaku (DD-MM-YYYY):"), gbc);
+        gbc.gridx = 1;
+        kreditMasaBerlakuField = new JTextField(15);
+        panel.add(kreditMasaBerlakuField, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 2;
+        panel.add(new JLabel("No. Kartu:"), gbc);
+        gbc.gridx = 1;
+        kreditNoKartuField = new JTextField(15);
+        panel.add(kreditNoKartuField, gbc);
+
+        return panel;
+    }
+
 
     private JPanel createKatalogPanel() {
         JPanel frontPanel = new JPanel(new BorderLayout(10, 10));
@@ -376,7 +492,7 @@ public class App extends JFrame {
                     int quantity = Integer.parseInt(quantityObj.toString());
                     if (quantity > 0) {
                         Object[] rowData = new Object[]{
-                                true, // Checkbox default true
+                                true,
                                 productTableModel.getValueAt(i, 0), // Nama
                                 productTableModel.getValueAt(i, 1), // Ukuran
                                 productTableModel.getValueAt(i, 2), // Warna
