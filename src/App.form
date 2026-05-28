@@ -30,21 +30,10 @@
                 <properties/>
                 <border type="none"/>
                 <children>
-                  <component id="20d61" class="javax.swing.JLabel" binding="welcome">
-                    <constraints>
-                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                      <gridbag weightx="0.0" weighty="0.1"/>
-                    </constraints>
-                    <properties>
-                      <font name="JetBrainsMono NFM ExtraBold" size="26"/>
-                      <foreground color="-1"/>
-                      <text value="Hai, ...."/>
-                    </properties>
-                  </component>
                   <scrollpane id="7f4c1">
                     <constraints>
-                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                      <gridbag weightx="1.0" weighty="1.0"/>
+                      <grid row="1" column="0" row-span="1" col-span="5" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                      <gridbag top="0" left="7" bottom="7" right="7" weightx="1.0" weighty="1.0"/>
                     </constraints>
                     <properties/>
                     <border type="none"/>
@@ -55,6 +44,115 @@
                       </component>
                     </children>
                   </scrollpane>
+                  <component id="e92fc" class="javax.swing.JLabel" binding="cariLB">
+                    <constraints>
+                      <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="0.2" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <text value="Cari : "/>
+                    </properties>
+                  </component>
+                  <component id="da4e3" class="javax.swing.JLabel" binding="kategoriLB">
+                    <constraints>
+                      <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="0.2" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <text value="Kategori : "/>
+                    </properties>
+                  </component>
+                  <component id="f32cc" class="javax.swing.JTextField" binding="filterTF">
+                    <constraints>
+                      <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                        <preferred-size width="150" height="-1"/>
+                      </grid>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="0.8" weighty="0.0"/>
+                    </constraints>
+                    <properties/>
+                  </component>
+                  <component id="780e7" class="javax.swing.JLabel" binding="merkLB">
+                    <constraints>
+                      <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="0.2" weighty="0.15"/>
+                    </constraints>
+                    <properties>
+                      <text value="Merk : "/>
+                    </properties>
+                  </component>
+                  <component id="40701" class="javax.swing.JComboBox" binding="kategoriCB">
+                    <constraints>
+                      <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="0.8" weighty="0.0"/>
+                    </constraints>
+                    <properties/>
+                  </component>
+                  <component id="bbbb1" class="javax.swing.JComboBox" binding="merkCB">
+                    <constraints>
+                      <grid row="4" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="9" fill="1" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="0.8" weighty="0.0"/>
+                    </constraints>
+                    <properties/>
+                  </component>
+                  <component id="74560" class="javax.swing.JButton" binding="tambahKeKeranjangButton" default-binding="true">
+                    <constraints>
+                      <grid row="2" column="4" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="0" left="0" bottom="0" right="20" weightx="0.2" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <background color="-13330213"/>
+                      <borderPainted value="false"/>
+                      <foreground color="-1"/>
+                      <text value="Tambah ke Keranjang"/>
+                    </properties>
+                  </component>
+                  <component id="20d61" class="javax.swing.JLabel" binding="welcome">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="5" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="0" left="7" bottom="0" right="0" weightx="0.0" weighty="0.1"/>
+                    </constraints>
+                    <properties>
+                      <background color="-13330213"/>
+                      <doubleBuffered value="false"/>
+                      <font name="JetBrainsMono NFM ExtraBold" size="26"/>
+                      <foreground color="-13484463"/>
+                      <text value="Hai, ...."/>
+                    </properties>
+                  </component>
+                  <component id="4c880" class="javax.swing.JButton" binding="cariFilter">
+                    <constraints>
+                      <grid row="2" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                      <gridbag weightx="0.2" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <background color="-12301861"/>
+                      <borderPainted value="false"/>
+                      <focusPainted value="false"/>
+                      <focusable value="true"/>
+                      <foreground color="-1"/>
+                      <text value="Cari"/>
+                    </properties>
+                  </component>
+                  <component id="47a46" class="javax.swing.JSpinner" binding="spinner1" default-binding="true">
+                    <constraints>
+                      <grid row="3" column="4" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                      <gridbag top="0" left="20" bottom="0" right="20" weightx="0.0" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <maximumSize width="200" height="34"/>
+                      <minimumSize width="200" height="34"/>
+                    </properties>
+                  </component>
+                  <component id="68928" class="javax.swing.JLabel">
+                    <constraints>
+                      <grid row="3" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="0" left="0" bottom="0" right="15" weightx="0.4" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <font name="JetBrains Mono" size="16"/>
+                      <text value="Jumlah : "/>
+                    </properties>
+                  </component>
                 </children>
               </grid>
               <grid id="2c3aa" layout-manager="BorderLayout" hgap="0" vgap="0">

@@ -5,7 +5,6 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.*;
 import java.time.LocalDate;
-import src.configLoginSql;
 
 public class App extends JFrame {
     // Table
@@ -59,6 +58,15 @@ public class App extends JFrame {
     private JTable table1;
     private JTable table2;
     private JLabel welcome;
+    private JTextField filterTF;
+    private JComboBox<String> kategoriCB;
+    private JComboBox<String> merkCB;
+    private JLabel cariLB;
+    private JLabel kategoriLB;
+    private JLabel merkLB;
+    private JButton tambahKeKeranjangButton;
+    private JButton cariFilter;
+    private JSpinner spinner1;
     private JTextArea ID;
 
     // Card Layout
@@ -70,6 +78,9 @@ public class App extends JFrame {
         setSize(1280, 720);
         setTitle("Aplikasi Pengurus Database");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        kategoriCB.setMaximumRowCount(5);
+        merkCB.setMaximumRowCount(5);
 
         c1 = (CardLayout) MainPanel.getLayout();
         c1.show(MainPanel, "pageUtama");
@@ -84,6 +95,10 @@ public class App extends JFrame {
         gantiButton2.addActionListener((e) -> gantiInformasiAkun(3));
         gantiButton3.addActionListener((e) -> gantiInformasiAkun(4));
         gantiButton4.addActionListener((e) -> gantiInformasiAkun(5));
+        cariFilter.addActionListener((e) -> filterBarang());
+
+        SpinnerNumberModel model = new SpinnerNumberModel(0, 0, 999, 1);
+        spinner1.setModel(model);
 
         tabbedPane1.addChangeListener((e) -> refreshDataPengguna());
 
@@ -97,8 +112,199 @@ public class App extends JFrame {
         tb2.addColumn("Stok"); tb2.addColumn("Harga");
         table2.setModel(tb2);
 
+        table2.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
         table1.setModel(tb1);
         setVisible(true);
+    }
+
+    private void filterBarang(){
+        // Possibility 0 : Kembalikan normal jika kosong semua
+        if(filterTF.getText().isEmpty() && kategoriCB.getSelectedItem().toString().equals("-") && merkCB.getSelectedItem().toString().equals("-")) refreshKatalog();
+
+        String query2 = "SELECT k.nama_kategori FROM Produk_Mempunyai_Kategori pmk\n" +
+                "JOIN Kategori k ON k.id_kategori = pmk.id_kategori\n" +
+                "WHERE pmk.id_produk = ?;";
+
+        // Possibility 1: Cari
+        if(!filterTF.getText().isEmpty() && kategoriCB.getSelectedItem().toString().equals("-") && merkCB.getSelectedItem().toString().equals("-")){
+            String query = "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga FROM Varian_Produk vp\n" +
+                    "JOIN Produk p ON vp.id_produk = p.id_produk\n" +
+                    "JOIN Merk m ON p.id_merk = m.id_merk\n" +
+                    "WHERE p.status = 'Tersedia' AND p.nama LIKE ?\n" +
+                    "ORDER BY vp.id_produk; ";
+
+            try{
+                PreparedStatement ps = conn.prepareStatement(query);
+                ps.setString(1, "%" + filterTF.getText().trim() + "%");
+
+                ResultSet rs = ps.executeQuery();
+                isiTabelKatalog(rs, query2);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, e.getMessage());
+            }
+        }
+
+        // Possibility 2: Kategori
+        if(filterTF.getText().isEmpty() && !kategoriCB.getSelectedItem().toString().equals("-") && merkCB.getSelectedItem().toString().equals("-")){
+            String query = "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga FROM Varian_Produk vp\n" +
+                    "JOIN Produk p ON vp.id_produk = p.id_produk\n" +
+                    "JOIN Merk m ON p.id_merk = m.id_merk\n" +
+                    "WHERE p.status = 'Tersedia' AND ? IN (SELECT bb.nama_kategori FROM Produk_Mempunyai_Kategori aa JOIN Kategori bb ON aa.id_kategori = bb.id_kategori WHERE p.id_produk = aa.id_produk)\n" +
+                    "ORDER BY vp.id_produk; ";
+
+            try{
+                PreparedStatement ps = conn.prepareStatement(query);
+                ps.setString(1, kategoriCB.getSelectedItem().toString().trim());
+
+                System.out.println(kategoriCB.getSelectedItem().toString());
+
+                ResultSet rs = ps.executeQuery();
+                isiTabelKatalog(rs, query2);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, e.getMessage());
+            }
+        }
+
+        // Possibility 3: Merk
+        if(filterTF.getText().isEmpty() && kategoriCB.getSelectedItem().toString().equals("-") && !merkCB.getSelectedItem().toString().equals("-")){
+            String query = "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga FROM Varian_Produk vp\n" +
+                    "JOIN Produk p ON vp.id_produk = p.id_produk\n" +
+                    "JOIN Merk m ON p.id_merk = m.id_merk\n" +
+                    "WHERE p.status = 'Tersedia' AND m.nama = ?\n" +
+                    "ORDER BY vp.id_produk; ";
+
+            try{
+                PreparedStatement ps = conn.prepareStatement(query);
+                ps.setString(1, merkCB.getSelectedItem().toString().trim());
+
+                ResultSet rs = ps.executeQuery();
+                isiTabelKatalog(rs, query2);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, e.getMessage());
+            }
+        }
+
+        // Possibility 4 : Kategori + Merk
+        if(filterTF.getText().isEmpty() && !kategoriCB.getSelectedItem().toString().equals("-") && !merkCB.getSelectedItem().toString().equals("-")){
+            String query =
+                    "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga " +
+                            "FROM Varian_Produk vp " +
+                            "JOIN Produk p ON vp.id_produk = p.id_produk " +
+                            "JOIN Merk m ON p.id_merk = m.id_merk " +
+                            "WHERE p.status = 'Tersedia' " +
+                            "AND m.nama = ? " +
+                            "AND ? IN ( " +
+                            "   SELECT bb.nama_kategori " +
+                            "   FROM Produk_Mempunyai_Kategori aa " +
+                            "   JOIN Kategori bb ON aa.id_kategori = bb.id_kategori " +
+                            "   WHERE p.id_produk = aa.id_produk " +
+                            ") " +
+                            "ORDER BY vp.id_produk;";
+
+            try{
+                PreparedStatement ps = conn.prepareStatement(query);
+
+                ps.setString(1, merkCB.getSelectedItem().toString().trim());
+                ps.setString(2, kategoriCB.getSelectedItem().toString().trim());
+
+                ResultSet rs = ps.executeQuery();
+                isiTabelKatalog(rs, query2);
+
+            } catch (Exception e){
+                JOptionPane.showMessageDialog(this, e.getMessage());
+            }
+        }
+
+        // Possibility 5: Cari + Merk
+        if(!filterTF.getText().isEmpty() && kategoriCB.getSelectedItem().toString().equals("-") && !merkCB.getSelectedItem().toString().equals("-")){
+            String query =
+                    "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga " +
+                            "FROM Varian_Produk vp " +
+                            "JOIN Produk p ON vp.id_produk = p.id_produk " +
+                            "JOIN Merk m ON p.id_merk = m.id_merk " +
+                            "WHERE p.status = 'Tersedia' " +
+                            "AND p.nama LIKE ? " +
+                            "AND m.nama = ? " +
+                            "ORDER BY vp.id_produk;";
+
+            try{
+                PreparedStatement ps = conn.prepareStatement(query);
+
+                ps.setString(1, "%" + filterTF.getText().trim() + "%");
+                ps.setString(2, merkCB.getSelectedItem().toString().trim());
+
+                ResultSet rs = ps.executeQuery();
+                isiTabelKatalog(rs, query2);
+
+            } catch (Exception e){
+                JOptionPane.showMessageDialog(this, e.getMessage());
+            }
+        }
+
+        // Possibility 6: Cari + Kategori
+        if(!filterTF.getText().isEmpty() && !kategoriCB.getSelectedItem().toString().equals("-") && merkCB.getSelectedItem().toString().equals("-")){
+            String query =
+                    "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga " +
+                            "FROM Varian_Produk vp " +
+                            "JOIN Produk p ON vp.id_produk = p.id_produk " +
+                            "JOIN Merk m ON p.id_merk = m.id_merk " +
+                            "WHERE p.status = 'Tersedia' " +
+                            "AND p.nama LIKE ? " +
+                            "AND ? IN ( " +
+                            "   SELECT bb.nama_kategori " +
+                            "   FROM Produk_Mempunyai_Kategori aa " +
+                            "   JOIN Kategori bb ON aa.id_kategori = bb.id_kategori " +
+                            "   WHERE p.id_produk = aa.id_produk " +
+                            ") " +
+                            "ORDER BY vp.id_produk;";
+
+            try{
+                PreparedStatement ps = conn.prepareStatement(query);
+
+                ps.setString(1, "%" + filterTF.getText().trim() + "%");
+                ps.setString(2, kategoriCB.getSelectedItem().toString().trim());
+
+                ResultSet rs = ps.executeQuery();
+                isiTabelKatalog(rs, query2);
+
+            } catch (Exception e){
+                JOptionPane.showMessageDialog(this, e.getMessage());
+            }
+        }
+
+        // Possibility 7: Cari + Kategori + Merk
+        if(!filterTF.getText().isEmpty() && !kategoriCB.getSelectedItem().toString().equals("-") && !merkCB.getSelectedItem().toString().equals("-")){
+            String query =
+                    "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga " +
+                            "FROM Varian_Produk vp " +
+                            "JOIN Produk p ON vp.id_produk = p.id_produk " +
+                            "JOIN Merk m ON p.id_merk = m.id_merk " +
+                            "WHERE p.status = 'Tersedia' " +
+                            "AND p.nama LIKE ? " +
+                            "AND m.nama = ? " +
+                            "AND ? IN ( " +
+                            "   SELECT bb.nama_kategori " +
+                            "   FROM Produk_Mempunyai_Kategori aa " +
+                            "   JOIN Kategori bb ON aa.id_kategori = bb.id_kategori " +
+                            "   WHERE p.id_produk = aa.id_produk " +
+                            ") " +
+                            "ORDER BY vp.id_produk;";
+
+            try{
+                PreparedStatement ps = conn.prepareStatement(query);
+
+                ps.setString(1, "%" + filterTF.getText().trim() + "%");
+                ps.setString(2, merkCB.getSelectedItem().toString().trim());
+                ps.setString(3, kategoriCB.getSelectedItem().toString().trim());
+
+                ResultSet rs = ps.executeQuery();
+                isiTabelKatalog(rs, query2);
+
+            } catch (Exception e){
+                JOptionPane.showMessageDialog(this, e.getMessage());
+            }
+        }
     }
 
     private void gantiInformasiAkun(int e){
@@ -157,33 +363,74 @@ public class App extends JFrame {
                 "JOIN Kategori k ON k.id_kategori = pmk.id_kategori\n" +
                 "WHERE pmk.id_produk = ?;";
 
-        tb2.setRowCount(0);
+        String query3 = "SELECT nama_kategori FROM Kategori ORDER BY nama_kategori;";
+
+        String query4 = "SELECT nama FROM Merk ORDER BY nama;";
+
+        kategoriCB.removeAllItems();
+        merkCB.removeAllItems();
+        // Data Tabel
         try{
             PreparedStatement st = conn.prepareStatement(query);
             ResultSet rs = st.executeQuery();
 
             while(rs.next()){
-                String id = rs.getString(1);
-
-                PreparedStatement ps2 = conn.prepareStatement(query2);
-                ps2.setString(1, id);
-
-                ResultSet rs2 = ps2.executeQuery();
-
-                StringBuilder kategori = new StringBuilder();
-                while(rs2.next()){
-                    rs2.getString(1);
-                    kategori.append(rs2.getString(1)).append(" ");
-                }
-                String kategoriFull = kategori.toString().trim();
-
-                tb2.addRow(new Object[]{kategoriFull, rs.getString(2), rs.getString(3), rs.getString(4),
-                rs.getString(5), rs.getInt(6), rs.getInt(7)});
+                isiTabelKatalog(rs, query2);
             }
+            st.close();
+            rs.close();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, e.getMessage());
         }
 
+        // Refresh JCombobox
+        try {
+            PreparedStatement ps = conn.prepareStatement(query3);
+            PreparedStatement ps2 = conn.prepareStatement(query4);
+            ResultSet rs = ps.executeQuery();
+            ResultSet rs2 = ps2.executeQuery();
+
+            kategoriCB.addItem("-");
+            merkCB.addItem("-");
+            while(rs.next()){
+                kategoriCB.addItem(rs.getString(1));
+            }
+
+            while(rs2.next()){
+                merkCB.addItem(rs2.getString(1));
+            }
+
+            ps.close(); ps2.close();
+            rs.close(); rs2.close();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, e.getMessage());
+        }
+
+    }
+
+    private void isiTabelKatalog(ResultSet rs, String query2) throws SQLException{
+        tb2.setRowCount(0);
+        while(rs.next()){
+            String id = rs.getString(1);
+
+            PreparedStatement ps2 = conn.prepareStatement(query2);
+            ps2.setString(1, id);
+
+            ResultSet rs2 = ps2.executeQuery();
+
+            StringBuilder kategori = new StringBuilder();
+            while(rs2.next()){
+                rs2.getString(1);
+                kategori.append(rs2.getString(1)).append(" ");
+            }
+            String kategoriFull = kategori.toString().trim();
+
+            tb2.addRow(new Object[]{kategoriFull, rs.getString(2), rs.getString(3), rs.getString(4),
+                    rs.getString(5), rs.getInt(6), rs.getInt(7)});
+
+            ps2.close();;
+            rs2.close();
+        }
     }
 
     private void refreshDataPengguna(){
