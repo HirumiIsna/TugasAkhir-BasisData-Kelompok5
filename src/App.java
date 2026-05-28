@@ -169,9 +169,12 @@ public class App extends JFrame {
         manageMerk = new ManageMerk(conn);
         managePemasok = new ManagePemasok(conn);
 
+        //Manage Produk
         manageProduk.initializeComboBox(CMB_MerkProduk, CMB_KategoriProduk, CMB_PemasokProduk);
-
-        loadDataProduk();
+        simpanButtonProduk.addActionListener(e -> manageProduk.insertProduk(TabelManageProduk, TF_IDProduk.getText(), "Tersedia", TF_NamaProduk.getText(), TF_DeskripsiProduk.getText(), CMB_MerkProduk.getSelectedItem().toString(), CMB_PemasokProduk.getSelectedItem().toString(), CMB_KategoriProduk.getSelectedItem().toString()));
+        updateButtonProduk.addActionListener(e -> manageProduk.updateProduk(TabelManageProduk, TF_IDProduk.getText(), TF_NamaProduk.getText(), TF_DeskripsiProduk.getText(), CMB_MerkProduk.getSelectedItem().toString(), CMB_PemasokProduk.getSelectedItem().toString(), CMB_KategoriProduk.getSelectedItem().toString()));
+        deleteButtonProduk.addActionListener(e -> manageProduk.deleteProduk(TabelManageProduk));
+        refreshDataButtonProduk.addActionListener(e -> manageProduk.loadDataProduk(TabelManageProduk));
 
         setVisible(true);
     }
@@ -356,123 +359,22 @@ public class App extends JFrame {
     }
 
     //backend
-    private void loadDataProduk() {
-        DefaultTableModel tbMP = new DefaultTableModel();
-
-        tbMP.addColumn("ID Produk");
-        tbMP.addColumn("ID Varian");
-        tbMP.addColumn("Status");
-        tbMP.addColumn("Nama Produk");
-        tbMP.addColumn("Deskripsi");
-        tbMP.addColumn("Nama Merk");
-        tbMP.addColumn("Ukuran");
-        tbMP.addColumn("Stok");
-
-        try {
-            String query = "SELECT p.id_produk, vp.id_varian, p.status, p.nama, p.deskripsi, m.nama AS nama_merk, vp.ukuran, vp.stok " +
-                           "FROM Produk p JOIN Merk m ON p.id_merk = m.id_merk JOIN Varian_Produk vp ON p.id_produk = vp.id_produk";
-            PreparedStatement ps = conn.prepareStatement(query);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                tbMP.addRow(new Object[]{
-                        rs.getString("id_produk"),
-                        rs.getString("id_varian"),
-                        rs.getString("status"),
-                        rs.getString("nama"),
-                        rs.getString("deskripsi"),
-                        rs.getString("nama_merk"),
-                        rs.getString("ukuran"),
-                        rs.getInt("stok")
-                });
-            }
-
-            manageProduk.loadDataProduk(TabelManageProduk);
-            manageVarian.loadDataVarian(TabelManageVarian);
-            manageKategori.loadKategori(TabelManageKategori);
-            manageMerk.loadMerk(TabelManageMerk);
-            managePemasok.loadPemasok(TabelManagePemasok);
-
-            TabelUmumProduk.setModel(tbMP);
-
-            rs.close();
-            ps.close();
-
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, e.getMessage());
+    private void clearFormProduk(){
+        TF_IDProduk.setText("");
+        TF_NamaProduk.setText("");
+        TF_DeskripsiProduk.setText("");
+        if(CMB_MerkProduk.getItemCount() > 0){
+            CMB_MerkProduk.setSelectedIndex(0);
         }
-    }
-    private void deleteProduk() {
-
-        int selectedRow = TabelUmumProduk.getSelectedRow();
-
-        if(selectedRow == -1){
-            JOptionPane.showMessageDialog(this,"Pilih data terlebih dahulu");
-            return;
+        if(CMB_KategoriProduk.getItemCount() > 0){
+            CMB_KategoriProduk.setSelectedIndex(0);
         }
-
-        String idProduk = TabelUmumProduk.getValueAt(selectedRow, 0).toString();
-
-        String idVarian = TabelUmumProduk.getValueAt(selectedRow, 1).toString();
-
-        try {
-            String queryDeleteDetail = "DELETE FROM Detail_Transaksi WHERE id_produk = ? AND id_varian = ?";
-
-            PreparedStatement psCheck = conn.prepareStatement(queryDeleteDetail);
-
-            psCheck.setString(1, idProduk);
-            psCheck.setString(2, idVarian);
-
-            psCheck.executeUpdate();
-
-            psCheck.close();
-
-            int confirm = JOptionPane.showConfirmDialog(this,"Yakin ingin menghapus data ini?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
-            if(confirm != JOptionPane.YES_OPTION){
-                return;
-            }
-
-            String queryDeleteVarian = "DELETE FROM Varian_Produk WHERE id_produk = ? AND id_varian = ?";
-            PreparedStatement ps1 = conn.prepareStatement(queryDeleteVarian);
-
-            ps1.setString(1, idProduk);
-            ps1.setString(2, idVarian);
-
-            ps1.executeUpdate();
-
-            ps1.close();
-
-            String queryCheckVarian = "SELECT COUNT(*) FROM Varian_Produk WHERE id_produk = ?";
-            PreparedStatement ps2 = conn.prepareStatement(queryCheckVarian);
-            ps2.setString(1, idProduk);
-            ResultSet rs2 = ps2.executeQuery();
-            int jumlahVarian = 0;
-            if(rs2.next()){
-                jumlahVarian = rs2.getInt(1);
-            }
-
-            rs2.close();
-            ps2.close();
-
-            if(jumlahVarian == 0){
-                String queryDeleteProduk = "DELETE FROM Produk WHERE id_produk = ?";
-                PreparedStatement ps3 = conn.prepareStatement(queryDeleteProduk);
-                ps3.setString(1, idProduk);
-                ps3.executeUpdate();
-                ps3.close();
-            }
-            loadDataProduk();
-            JOptionPane.showMessageDialog(this,"Data berhasil dihapus");
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, e.getMessage());
+        if(CMB_PemasokProduk.getItemCount() > 0){
+            CMB_PemasokProduk.setSelectedIndex(0);
         }
     }
 
     public static void main(String[] args){
         new App();
-    }
-
-    private void createUIComponents() {
-        // TODO: place custom component creation code here
     }
 }
