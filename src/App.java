@@ -1,11 +1,10 @@
 package src;
 
 import java.awt.*;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.Map;
 import javax.swing.*;
-import javax.swing.event.TableModelEvent;
+import javax.swing.event.*;
 import javax.swing.table.DefaultTableModel;
 
 public class App extends JFrame {
@@ -206,14 +205,14 @@ public class App extends JFrame {
         gbc.gridx = 1;
         voucherField = new JTextField(20);
         detailsPanel.add(voucherField, gbc);
-        voucherField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
-            public void insertUpdate(javax.swing.event.DocumentEvent e) {
+        voucherField.getDocument().addDocumentListener(new DocumentListener() {
+            public void insertUpdate(DocumentEvent e) {
                 calculateCartSubtotal();
             }
-            public void removeUpdate(javax.swing.event.DocumentEvent e) {
+            public void removeUpdate(DocumentEvent e) {
                 calculateCartSubtotal();
             }
-            public void changedUpdate(javax.swing.event.DocumentEvent e) {
+            public void changedUpdate(DocumentEvent e) {
                 calculateCartSubtotal();
             }
         });
