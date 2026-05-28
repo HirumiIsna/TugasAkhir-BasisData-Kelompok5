@@ -1,6 +1,7 @@
 package src;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.*;
@@ -73,6 +74,11 @@ public class App extends JFrame {
     private JButton cariFilter;
     private JSpinner jumlahSelected;
     private JTable tableKeranjang;
+    private JLabel LBjumlah;
+    private JSpinner spinnerJumlah;
+    private JScrollPane JKeranjang;
+    private JButton deleteSelectedButton;
+    private JButton deleteAllButton;
     private JTextArea ID;
 
     // Card Layout
@@ -109,30 +115,98 @@ public class App extends JFrame {
 
         tabbedPane1.addChangeListener((e) -> refreshDataPengguna());
 
-        tb1 = new DefaultTableModel(); tb1.addColumn("Tanggal");
+        tb1 = new DefaultTableModel() {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        tb1.addColumn("Tanggal");
         tb1.addColumn("ID Transaksi"); tb1.addColumn("Perubahan Poin");
 
-        tb2 = new DefaultTableModel();
+
+        tb2 = new DefaultTableModel() {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         tb2.addColumn("Kategori");
         tb2.addColumn("Nama"); tb2.addColumn("Merk");
         tb2.addColumn("Ukuran"); tb2.addColumn("Warna");
         tb2.addColumn("Stok"); tb2.addColumn("Harga");
         table2.setModel(tb2);
 
-        tb3 = new DefaultTableModel();
+        tb3 = new DefaultTableModel() {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         tb3.addColumn("Nama"); tb3.addColumn("Merk"); tb3.addColumn("Ukuran");
         tb3.addColumn("Warna"); tb3.addColumn("Harga"); tb3.addColumn("Jumlah");
         tableKeranjang.setModel(tb3);
 
         table2.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tableKeranjang.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tableKeranjang.getSelectionModel().addListSelectionListener((e) -> synchronSpinner(e));
+        spinnerJumlah.addChangeListener((e) -> ubahSelectedKeranjang());
+        deleteSelectedButton.addActionListener((e) -> {
+            int result = JOptionPane.showConfirmDialog(this, "Apakah ingin lanjut?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
+
+            if(result == JOptionPane.NO_OPTION) return;
+
+            int index = tableKeranjang.getSelectedRow();
+
+            keranjangItem.remove(index);
+            refreshDataPengguna();
+        });
+        deleteAllButton.addActionListener((e) -> {
+            int result = JOptionPane.showConfirmDialog(this, "Apakah ingin lanjut?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
+
+            if(result == JOptionPane.NO_OPTION) return;
+
+            int index = tableKeranjang.getSelectedRow();
+
+            keranjangItem.clear();
+            refreshDataPengguna();
+        });
 
         table1.setModel(tb1);
         setVisible(true);
     }
 
+    private void ubahSelectedKeranjang(){
+        int index = tableKeranjang.getSelectedRow();
+
+        if(index == -1) return;
+
+        Object[] data = keranjangItem.get(index);
+        data[5] = (int) spinnerJumlah.getValue();
+
+        tb3.setValueAt(data[5], index, 5);
+    }
+
+    private void synchronSpinner(ListSelectionEvent e){
+        if (e.getValueIsAdjusting()) return;
+
+        int row = tableKeranjang.getSelectedRow();
+
+        if (row == -1) return;
+
+        Object[] select = keranjangItem.get(row);
+        int max = (int)select[8];
+
+        SpinnerNumberModel model2 = new SpinnerNumberModel(1, 1, max, 1);
+        spinnerJumlah.setModel(model2);
+
+        spinnerJumlah.setValue((int) select[5]);
+    }
+
     private void tambahKeKeranjang(){
-        if((int)jumlahSelected.getValue() == 0){
+        int jumlah = (int) jumlahSelected.getValue();
+
+        if(jumlah == 0){
             JOptionPane.showMessageDialog(this, "Jumlah harus lebih dari 0");
             return;
         }
@@ -145,7 +219,35 @@ public class App extends JFrame {
         }
 
         Object[] isi = katalogItem.get(index);
-        keranjangItem.add(new Object[]{isi[1],isi[2], isi[3], isi[4], isi[6], (int)jumlahSelected.getValue(), isi[7], isi[8]});
+
+        String idProduk = isi[7].toString();
+        String idVarian = isi[8].toString();
+
+        boolean ditemukan = false;
+        for(Object[] item : keranjangItem){
+            String idProdukKeranjang = item[6].toString();
+            String idVarianKeranjang = item[7].toString();
+            if(idProdukKeranjang.equals(idProduk) && idVarianKeranjang.equals(idVarian)){
+                int jumlahLama = (int) item[5];
+                int total = jumlahLama + jumlah;
+                if (total > (int)item[8]) {
+                    JOptionPane.showMessageDialog(this, "Jumlah melebihi stok!", "Exceeded From Stock", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                item[5] = jumlahLama + jumlah;
+                ditemukan = true;
+                break;
+            }
+        }
+
+        if(!ditemukan){
+            if (jumlah > (int)isi[5]){
+                JOptionPane.showMessageDialog(this, "Jumlah melebihi stok!", "Exceeded From Stock", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            keranjangItem.add(new Object[]{isi[1], isi[2], isi[3], isi[4], isi[6], jumlah, isi[7], isi[8], isi[5]});
+        }
 
         JOptionPane.showMessageDialog(this, "Pesanan berhasil ditambah!", "Success!", JOptionPane.INFORMATION_MESSAGE);
     }
@@ -160,7 +262,7 @@ public class App extends JFrame {
 
         // Possibility 1: Cari
         if(!filterTF.getText().isEmpty() && kategoriCB.getSelectedItem().toString().equals("-") && merkCB.getSelectedItem().toString().equals("-")){
-            String query = "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga FROM Varian_Produk vp\n" +
+            String query = "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga, p.id_produk, vp.id_varian FROM Varian_Produk vp\n" +
                     "JOIN Produk p ON vp.id_produk = p.id_produk\n" +
                     "JOIN Merk m ON p.id_merk = m.id_merk\n" +
                     "WHERE p.status = 'Tersedia' AND p.nama LIKE ?\n" +
@@ -179,7 +281,7 @@ public class App extends JFrame {
 
         // Possibility 2: Kategori
         if(filterTF.getText().isEmpty() && !kategoriCB.getSelectedItem().toString().equals("-") && merkCB.getSelectedItem().toString().equals("-")){
-            String query = "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga FROM Varian_Produk vp\n" +
+            String query = "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga, p.id_produk, vp.id_varian FROM Varian_Produk vp\n" +
                     "JOIN Produk p ON vp.id_produk = p.id_produk\n" +
                     "JOIN Merk m ON p.id_merk = m.id_merk\n" +
                     "WHERE p.status = 'Tersedia' AND ? IN (SELECT bb.nama_kategori FROM Produk_Mempunyai_Kategori aa JOIN Kategori bb ON aa.id_kategori = bb.id_kategori WHERE p.id_produk = aa.id_produk)\n" +
@@ -200,7 +302,7 @@ public class App extends JFrame {
 
         // Possibility 3: Merk
         if(filterTF.getText().isEmpty() && kategoriCB.getSelectedItem().toString().equals("-") && !merkCB.getSelectedItem().toString().equals("-")){
-            String query = "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga FROM Varian_Produk vp\n" +
+            String query = "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga FROM Varian_Produk, p.id_produk, vp.id_varian vp\n" +
                     "JOIN Produk p ON vp.id_produk = p.id_produk\n" +
                     "JOIN Merk m ON p.id_merk = m.id_merk\n" +
                     "WHERE p.status = 'Tersedia' AND m.nama = ?\n" +
@@ -220,7 +322,7 @@ public class App extends JFrame {
         // Possibility 4 : Kategori + Merk
         if(filterTF.getText().isEmpty() && !kategoriCB.getSelectedItem().toString().equals("-") && !merkCB.getSelectedItem().toString().equals("-")){
             String query =
-                    "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga " +
+                    "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga, p.id_produk, vp.id_varian " +
                             "FROM Varian_Produk vp " +
                             "JOIN Produk p ON vp.id_produk = p.id_produk " +
                             "JOIN Merk m ON p.id_merk = m.id_merk " +
@@ -251,7 +353,7 @@ public class App extends JFrame {
         // Possibility 5: Cari + Merk
         if(!filterTF.getText().isEmpty() && kategoriCB.getSelectedItem().toString().equals("-") && !merkCB.getSelectedItem().toString().equals("-")){
             String query =
-                    "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga " +
+                    "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga, p.id_produk, vp.id_varian " +
                             "FROM Varian_Produk vp " +
                             "JOIN Produk p ON vp.id_produk = p.id_produk " +
                             "JOIN Merk m ON p.id_merk = m.id_merk " +
@@ -277,7 +379,7 @@ public class App extends JFrame {
         // Possibility 6: Cari + Kategori
         if(!filterTF.getText().isEmpty() && !kategoriCB.getSelectedItem().toString().equals("-") && merkCB.getSelectedItem().toString().equals("-")){
             String query =
-                    "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga " +
+                    "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga, p.id_produk, vp.id_varian " +
                             "FROM Varian_Produk vp " +
                             "JOIN Produk p ON vp.id_produk = p.id_produk " +
                             "JOIN Merk m ON p.id_merk = m.id_merk " +
@@ -308,7 +410,7 @@ public class App extends JFrame {
         // Possibility 7: Cari + Kategori + Merk
         if(!filterTF.getText().isEmpty() && !kategoriCB.getSelectedItem().toString().equals("-") && !merkCB.getSelectedItem().toString().equals("-")){
             String query =
-                    "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga " +
+                    "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga, p.id_produk, vp.id_varian " +
                             "FROM Varian_Produk vp " +
                             "JOIN Produk p ON vp.id_produk = p.id_produk " +
                             "JOIN Merk m ON p.id_merk = m.id_merk " +
@@ -406,9 +508,8 @@ public class App extends JFrame {
             PreparedStatement st = conn.prepareStatement(query);
             ResultSet rs = st.executeQuery();
 
-            while(rs.next()){
-                isiTabelKatalog(rs, query2);
-            }
+            isiTabelKatalog(rs, query2);
+
             st.close();
             rs.close();
         } catch (Exception e) {
@@ -480,6 +581,7 @@ public class App extends JFrame {
         }
 
         if (index == 1){
+            tb3.setRowCount(0);
             for(int i=0; i<keranjangItem.size(); i++){
                 tb3.addRow(keranjangItem.get(i));
             }

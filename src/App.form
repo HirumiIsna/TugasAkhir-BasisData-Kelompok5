@@ -162,10 +162,10 @@
                 <properties/>
                 <border type="none"/>
                 <children>
-                  <scrollpane id="81489">
+                  <scrollpane id="81489" binding="JKeranjang">
                     <constraints>
-                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                      <gridbag weightx="1.0" weighty="1.0"/>
+                      <grid row="0" column="0" row-span="1" col-span="3" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                      <gridbag weightx="0.3" weighty="1.0"/>
                     </constraints>
                     <properties/>
                     <border type="none"/>
@@ -176,6 +176,56 @@
                       </component>
                     </children>
                   </scrollpane>
+                  <grid id="ffabd" layout-manager="GridBagLayout">
+                    <constraints>
+                      <grid row="0" column="3" row-span="2" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                      <gridbag weightx="0.3" weighty="0.0"/>
+                    </constraints>
+                    <properties/>
+                    <border type="none"/>
+                    <children/>
+                  </grid>
+                  <component id="187c4" class="javax.swing.JLabel" binding="LBjumlah">
+                    <constraints>
+                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="0" left="15" bottom="0" right="0" weightx="0.0" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <text value="Edit Jumlah : "/>
+                    </properties>
+                  </component>
+                  <component id="fd4ad" class="javax.swing.JSpinner" binding="spinnerJumlah">
+                    <constraints>
+                      <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="0.1" weighty="0.0"/>
+                    </constraints>
+                    <properties/>
+                  </component>
+                  <component id="4ff00" class="javax.swing.JButton" binding="deleteSelectedButton" default-binding="true">
+                    <constraints>
+                      <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="0.2" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <background color="-7250921"/>
+                      <borderPainted value="false"/>
+                      <focusPainted value="false"/>
+                      <foreground color="-1"/>
+                      <text value="Delete Selected"/>
+                    </properties>
+                  </component>
+                  <component id="869" class="javax.swing.JButton" binding="deleteAllButton" default-binding="true">
+                    <constraints>
+                      <grid row="2" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="0.2" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <background color="-4579553"/>
+                      <borderPainted value="false"/>
+                      <foreground color="-1"/>
+                      <text value="Delete All"/>
+                    </properties>
+                  </component>
                 </children>
               </grid>
               <grid id="427b" layout-manager="BorderLayout" hgap="0" vgap="0">
