@@ -16,17 +16,16 @@ public class App extends JFrame {
     static String userName = configLoginSql.userName;
     static String password = configLoginSql.password;
     Connection conn = configLoginSql.setConnection();
-    DatabaseHelper dbHelper;
 
     // User
     String loggedinUserID;
     String loggedinuserNama;
 
-    // Komponen dari FORM (JANGAN DIHAPUS!)
+    // Komponen
     private JPanel MainPanel;
-    private JPanel Front;           // ← JANGAN DIHAPUS - ini dari form
+    private JPanel Front;
     private JPanel pageUtama;
-    private JPanel Back;            // ← JANGAN DIHAPUS - ini dari form
+    private JPanel Back;
     private JLabel Judul;
     private JButton buttonFront;
     private JButton buttonBack;
@@ -60,58 +59,20 @@ public class App extends JFrame {
     private JTable table1;
     private JTextArea ID;
 
-    // Komponen dinamis (tidak dari form)
-    private FrontEndPanel frontEndPanel;
-    private BackEndPanel backEndPanel;
-
     // Card Layout
     private CardLayout c1;
 
-    // Constructor
+    // Constrcutor
     public App(){
-        // INISIALISASI KOMPONEN DARI FORM (PENTING!)
-        // JANGAN panggil setContentPane dulu, biar GUI Designer yang handle
-
-        // Initialize database helper
-        dbHelper = new DatabaseHelper(conn);
-
-        // Setup komponen dari form
-//        $$$setupUI$$$();  // Method ini akan di-generate oleh IntelliJ
-
         setContentPane(MainPanel);
         setSize(1280, 720);
-        setTitle("Matahari Online Store - Aplikasi Pengurus Database");
+        setTitle("Aplikasi Pengurus Database");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         c1 = (CardLayout) MainPanel.getLayout();
         c1.show(MainPanel, "pageUtama");
 
-        // Setup Front panel (isi dengan placeholder dulu)
-//        Front.setLayout(new BorderLayout());
-//        JLabel loginLabel = new JLabel("Silakan login terlebih dahulu", SwingConstants.CENTER);
-//        loginLabel.setFont(new Font("Arial", Font.BOLD, 16));
-//        Front.add(loginLabel, BorderLayout.CENTER);
-
-        // Setup Back panel (isi dengan placeholder dulu)
-        Back.setLayout(new BorderLayout());
-        JLabel adminLabel = new JLabel("Admin Panel - Silakan login sebagai admin", SwingConstants.CENTER);
-        adminLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        Back.add(adminLabel, BorderLayout.CENTER);
-
-        // Action Listeners
-        buttonBack.addActionListener((e) -> {
-            if (backEndPanel == null) {
-                backEndPanel = new BackEndPanel(dbHelper);
-            }
-            // Kosongkan panel Back lalu isi dengan backEndPanel
-            Back.removeAll();
-            Back.setLayout(new BorderLayout());
-            Back.add(backEndPanel, BorderLayout.CENTER);
-            Back.revalidate();
-            Back.repaint();
-            c1.show(MainPanel, "Back");
-        });
-
+        buttonBack.addActionListener((e) -> c1.show(MainPanel, "Back"));
         buttonFront.addActionListener((e) -> loginFrontend());
         registAkunButton.addActionListener((e) -> {c1.show(MainPanel, "regist");});
         backButton.addActionListener((e) -> c1.show(MainPanel, "pageUtama"));
@@ -130,21 +91,13 @@ public class App extends JFrame {
         tb1.addColumn("Perubahan Poin");
 
         table1.setModel(tb1);
-
         setVisible(true);
-    }
-
-    // Method ini akan di-generate oleh IntelliJ IDEA
-    // Jangan dihapus atau diubah strukturnya
-    private void $$$setupUI$$$() {
-        // IntelliJ akan mengisi method ini secara otomatis
-        // Berdasarkan file App.form
     }
 
     private void gantiInformasiAkun(int e){
         String informasi = JOptionPane.showInputDialog(this, "Masukan Data Pengganti : ");
 
-        if(informasi == null) return;
+        if(informasi == null)  return;;
         if(informasi.isEmpty()) return;
 
         String query;
@@ -266,7 +219,6 @@ public class App extends JFrame {
 
         if(id.isEmpty() || nama.isEmpty() || email.isEmpty() || telp.isEmpty() || alamat.isEmpty()){
             JOptionPane.showMessageDialog(this, "Data tidak boleh kosong");
-            return;
         }
 
         String query = "INSERT INTO Pelanggan VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -286,15 +238,6 @@ public class App extends JFrame {
             ps.close();
 
             JOptionPane.showMessageDialog(this, "Akun berhasil ditambahkan!");
-
-            // Clear fields
-            IDRegist.setText("");
-            namaRegist.setText("");
-            emailRegist.setText("");
-            telpRegist.setText("");
-            alamatRegist.setText("");
-
-            c1.show(MainPanel, "pageUtama");
         } catch (Exception e){
             JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.WARNING_MESSAGE);
         }
@@ -327,26 +270,10 @@ public class App extends JFrame {
             JOptionPane.showMessageDialog(this, e.getMessage());
             return;
         }
-
-        // Create frontend panel dan masukkan ke panel Front
-//        frontEndPanel = new FrontEndPanel(dbHelper, loggedinUserID, loggedinuserNama);
-//        Front.removeAll();
-//        Front.setLayout(new BorderLayout());
-//        Front.add(frontEndPanel, BorderLayout.CENTER);
-//        Front.revalidate();
-//        Front.repaint();
-
         c1.show(MainPanel, "Front");
     }
 
     public static void main(String[] args){
-        // Set look and feel
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
         new App();
     }
 }
