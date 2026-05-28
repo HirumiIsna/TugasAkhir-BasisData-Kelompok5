@@ -5,10 +5,11 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
 
 public class App extends JFrame {
     // Table
-    DefaultTableModel tb1, tb2;
+    DefaultTableModel tb1, tb2, tb3;
 
     // Sql
     static String url = configLoginSql.url;
@@ -19,6 +20,10 @@ public class App extends JFrame {
     // User
     String loggedinUserID;
     String loggedinuserNama;
+
+    // Arraylist Katalog
+    ArrayList<Object[]> katalogItem = new ArrayList<>();
+    ArrayList<Object[]> keranjangItem = new ArrayList<>();
 
     // Komponen
     private JPanel MainPanel;
@@ -66,7 +71,8 @@ public class App extends JFrame {
     private JLabel merkLB;
     private JButton tambahKeKeranjangButton;
     private JButton cariFilter;
-    private JSpinner spinner1;
+    private JSpinner jumlahSelected;
+    private JTable tableKeranjang;
     private JTextArea ID;
 
     // Card Layout
@@ -96,9 +102,10 @@ public class App extends JFrame {
         gantiButton3.addActionListener((e) -> gantiInformasiAkun(4));
         gantiButton4.addActionListener((e) -> gantiInformasiAkun(5));
         cariFilter.addActionListener((e) -> filterBarang());
+        tambahKeKeranjangButton.addActionListener((e) -> tambahKeKeranjang());
 
         SpinnerNumberModel model = new SpinnerNumberModel(0, 0, 999, 1);
-        spinner1.setModel(model);
+        jumlahSelected.setModel(model);
 
         tabbedPane1.addChangeListener((e) -> refreshDataPengguna());
 
@@ -112,10 +119,35 @@ public class App extends JFrame {
         tb2.addColumn("Stok"); tb2.addColumn("Harga");
         table2.setModel(tb2);
 
+        tb3 = new DefaultTableModel();
+        tb3.addColumn("Nama"); tb3.addColumn("Merk"); tb3.addColumn("Ukuran");
+        tb3.addColumn("Warna"); tb3.addColumn("Harga"); tb3.addColumn("Jumlah");
+        tableKeranjang.setModel(tb3);
+
         table2.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tableKeranjang.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         table1.setModel(tb1);
         setVisible(true);
+    }
+
+    private void tambahKeKeranjang(){
+        if((int)jumlahSelected.getValue() == 0){
+            JOptionPane.showMessageDialog(this, "Jumlah harus lebih dari 0");
+            return;
+        }
+
+        int index = table2.getSelectedRow();
+
+        if(index == -1) {
+            JOptionPane.showMessageDialog(this, "Pilih Produk yang ingin dibeli!");
+            return;
+        }
+
+        Object[] isi = katalogItem.get(index);
+        keranjangItem.add(new Object[]{isi[1],isi[2], isi[3], isi[4], isi[6], (int)jumlahSelected.getValue(), isi[7], isi[8]});
+
+        JOptionPane.showMessageDialog(this, "Pesanan berhasil ditambah!", "Success!", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void filterBarang(){
@@ -353,7 +385,7 @@ public class App extends JFrame {
     }
 
     private void refreshKatalog(){
-        String query = "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga FROM Varian_Produk vp\n" +
+        String query = "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga, p.id_produk, vp.id_varian FROM Varian_Produk vp\n" +
                 "JOIN Produk p ON vp.id_produk = p.id_produk\n" +
                 "JOIN Merk m ON p.id_merk = m.id_merk\n" +
                 "WHERE p.status = 'Tersedia'\n" +
@@ -410,6 +442,7 @@ public class App extends JFrame {
 
     private void isiTabelKatalog(ResultSet rs, String query2) throws SQLException{
         tb2.setRowCount(0);
+        katalogItem.clear();
         while(rs.next()){
             String id = rs.getString(1);
 
@@ -427,6 +460,8 @@ public class App extends JFrame {
 
             tb2.addRow(new Object[]{kategoriFull, rs.getString(2), rs.getString(3), rs.getString(4),
                     rs.getString(5), rs.getInt(6), rs.getInt(7)});
+            katalogItem.add(new Object[]{kategoriFull, rs.getString(2), rs.getString(3), rs.getString(4),
+                    rs.getString(5), rs.getInt(6), rs.getInt(7), rs.getString(8), rs.getString(9)});
 
             ps2.close();;
             rs2.close();
@@ -441,6 +476,12 @@ public class App extends JFrame {
                 refreshKatalog();
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, e.getMessage());
+            }
+        }
+
+        if (index == 1){
+            for(int i=0; i<keranjangItem.size(); i++){
+                tb3.addRow(keranjangItem.get(i));
             }
         }
 
