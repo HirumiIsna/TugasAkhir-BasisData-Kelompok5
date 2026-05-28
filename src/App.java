@@ -1,3 +1,5 @@
+package src;
+
 import java.awt.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -12,13 +14,12 @@ public class App extends JFrame {
     String loggedinuserNama;
 
     // Komponen
-    private JPanel MainPanel;
-    private JPanel Front;
+    private JTabbedPane tabbedPane;
 
     private JTable productTable;
     private JTextArea subtotalTextArea;
     private JButton calculateButton;
-    private JButton checkoutButton;
+    private JButton cartButton;
     private JLabel userInfoNameLabel;
     private JLabel userInfoEmailLabel;
     private JLabel userInfoTelpLabel;
@@ -26,7 +27,24 @@ public class App extends JFrame {
     private DefaultTableModel productTableModel;
     private JComboBox<String> kategoriComboBox;
 
-    private CardLayout c1;
+    // Komponen Keranjang
+    private DefaultTableModel cartTableModel;
+    private JTable cartTable;
+    private JLabel subtotalCartLabel;
+    private JLabel discountLabel;
+    private JLabel totalLabel;
+    private JLabel ppnLabel;
+    private JLabel totalBayarLabel;
+    private JLabel tierBonusLabel;
+    private JButton checkoutButton;
+
+    // Komponen Checkout
+    private JComboBox<String> jenisPengirimanComboBox;
+    private JComboBox<String> ekspedisiComboBox;
+    private JTextArea alamatTextArea;
+    private JTextField voucherField;
+    private JLabel subtotalCheckoutLabel;
+    private JLabel bonusTierCheckoutLabel;
 
     private DatabaseHandler dbHandler;
 
@@ -64,16 +82,20 @@ public class App extends JFrame {
             }
         }
 
-        setContentPane(MainPanel);
+        setContentPane(tabbedPane);
         setSize(1280, 720);
         setTitle("Aplikasi Pengurus Database - Selamat Datang, " + loggedinuserNama);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        c1 = (CardLayout) MainPanel.getLayout();
-        c1.show(MainPanel, "Front"); 
-
         calculateButton.addActionListener(e -> calculateSubtotal());
         kategoriComboBox.addActionListener(e -> filterByCategory());
+        cartButton.addActionListener(e -> addToCart());
+
+        tabbedPane.addChangeListener(e -> {
+            if (tabbedPane.getSelectedIndex() == 1) { // Keranjang tab
+                calculateCartSubtotal();
+            }
+        });
 
         setVisible(true);
 
@@ -88,11 +110,149 @@ public class App extends JFrame {
     }
 
     private void createUIComponents() {
-        MainPanel = new JPanel(new CardLayout());
-        Front = new JPanel(new BorderLayout(10, 10));
-        Front.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        tabbedPane = new JTabbedPane();
 
-        // 1. Initialize components that don't depend on others first
+        JPanel katalogPanel = createKatalogPanel();
+        tabbedPane.addTab("Katalog", katalogPanel);
+
+        JPanel keranjangPanel = createKeranjangPanel();
+        tabbedPane.addTab("Keranjang", keranjangPanel);
+    }
+
+    private JPanel createKeranjangPanel() {
+        JPanel keranjangPanel = new JPanel(new BorderLayout(10, 10));
+        keranjangPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // Left Panel: Cart Table
+        cartTableModel = new DefaultTableModel(new String[]{"Pilih", "Nama", "Ukuran", "Warna", "Harga", "Jumlah"}, 0) {
+            @Override
+            public Class<?> getColumnClass(int columnIndex) {
+                if (columnIndex == 0) {
+                    return Boolean.class;
+                }
+                return super.getColumnClass(columnIndex);
+            }
+
+            @Override
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return columnIndex == 0 || columnIndex == 5; // Allow editing for "Pilih" and "Jumlah"
+            }
+        };
+        cartTable = new JTable(cartTableModel);
+        cartTable.setRowHeight(25);
+        JScrollPane cartTableScrollPane = new JScrollPane(cartTable);
+
+        cartTableModel.addTableModelListener(e -> {
+            if (e.getType() == TableModelEvent.UPDATE) {
+                if (e.getColumn() == 0 || e.getColumn() == 5) {
+                    calculateCartSubtotal();
+                }
+            }
+        });
+
+        // Right Panel: Transaction Details
+        JPanel detailsPanel = new JPanel(new GridBagLayout());
+        detailsPanel.setBorder(BorderFactory.createTitledBorder("Detail Transaksi"));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        // Jenis Pengiriman
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        detailsPanel.add(new JLabel("Jenis Pengiriman:"), gbc);
+        gbc.gridx = 1;
+        jenisPengirimanComboBox = new JComboBox<>(new String[]{"Delivery", "Self service"});
+        detailsPanel.add(jenisPengirimanComboBox, gbc);
+
+        jenisPengirimanComboBox.addActionListener(e -> {
+            boolean isDelivery = "Delivery".equals(jenisPengirimanComboBox.getSelectedItem());
+            alamatTextArea.setEnabled(isDelivery);
+            ekspedisiComboBox.setEnabled(isDelivery);
+            calculateCartSubtotal();
+        });
+
+        // Ekspedisi
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        detailsPanel.add(new JLabel("Ekspedisi:"), gbc);
+        gbc.gridx = 1;
+        try{
+            String[] ekspedisiList = dbHandler.getEkspedisi();
+            ekspedisiComboBox = new JComboBox<>(ekspedisiList);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Database Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            ekspedisiComboBox = new JComboBox<>(); 
+        }
+        detailsPanel.add(ekspedisiComboBox, gbc);
+        ekspedisiComboBox.addActionListener(e -> calculateCartSubtotal());
+
+        // Alamat
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.anchor = GridBagConstraints.NORTH;
+        detailsPanel.add(new JLabel("Alamat:"), gbc);
+        gbc.gridx = 1;
+        gbc.fill = GridBagConstraints.BOTH;
+        alamatTextArea = new JTextArea(5, 20);
+        JScrollPane alamatScrollPane = new JScrollPane(alamatTextArea);
+        detailsPanel.add(alamatScrollPane, gbc);
+
+        // Voucher
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        detailsPanel.add(new JLabel("Voucher:"), gbc);
+        gbc.gridx = 1;
+        voucherField = new JTextField(20);
+        detailsPanel.add(voucherField, gbc);
+        voucherField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) {
+                calculateCartSubtotal();
+            }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) {
+                calculateCartSubtotal();
+            }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) {
+                calculateCartSubtotal();
+            }
+        });
+
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        detailsPanel.add(new JLabel("Subtotal:"), gbc);
+        gbc.gridx = 1;
+        subtotalCheckoutLabel = new JLabel("Rp 0");
+        detailsPanel.add(subtotalCheckoutLabel, gbc);
+
+        // Bonus Tier
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        detailsPanel.add(new JLabel("Bonus Tier:"), gbc);
+        gbc.gridx = 1;
+        bonusTierCheckoutLabel = new JLabel("-");
+        detailsPanel.add(bonusTierCheckoutLabel, gbc);
+
+        // Checkout Button
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.CENTER;
+        checkoutButton = new JButton("Checkout");
+        detailsPanel.add(checkoutButton, gbc);
+
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, cartTableScrollPane, detailsPanel);
+        splitPane.setDividerLocation(800);
+        keranjangPanel.add(splitPane, BorderLayout.CENTER);
+
+        return keranjangPanel;
+    }
+
+    private JPanel createKatalogPanel() {
+        JPanel frontPanel = new JPanel(new BorderLayout(10, 10));
+        frontPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
         userInfoNameLabel = new JLabel("Nama: ");
         userInfoEmailLabel = new JLabel("Email: ");
         userInfoTelpLabel = new JLabel("Telp: ");
@@ -101,7 +261,7 @@ public class App extends JFrame {
         subtotalTextArea.setEditable(false);
         subtotalTextArea.setText("Subtotal: Rp 0.00");
         calculateButton = new JButton("Hitung Subtotal");
-        checkoutButton = new JButton("Checkout");
+        cartButton = new JButton("Cart");
 
         try {
             kategoriComboBox = new JComboBox<>(dbHandler.getKategori());
@@ -128,10 +288,9 @@ public class App extends JFrame {
         filterPanel.add(kategoriComboBox);
         topContainer.add(filterPanel, BorderLayout.EAST);
 
-        Front.add(topContainer, BorderLayout.NORTH);
+        frontPanel.add(topContainer, BorderLayout.NORTH);
 
-        // 4. Set up the table model and table
-        productTableModel = new DefaultTableModel(new String[]{"Nama", "Ukuran", "Warna", "Kategori", "Merk", "Stok", "Harga", "Checkout"}, 0){
+        productTableModel = new DefaultTableModel(new String[]{"Nama", "Ukuran", "Warna", "Kategori", "Merk", "Stok", "Harga", "Cart"}, 0){
             @Override
             public boolean isCellEditable(int rowIndex, int columnIndex) {
                 return columnIndex == 7;
@@ -152,9 +311,8 @@ public class App extends JFrame {
         productTable = new JTable(productTableModel);
         productTable.setRowHeight(25);
         JScrollPane tableScrollPane = new JScrollPane(productTable);
-        Front.add(tableScrollPane, BorderLayout.CENTER);
+        frontPanel.add(tableScrollPane, BorderLayout.CENTER);
 
-        // 5. Populate the table
         try {
             getCatalog();
         } catch (SQLException e) {
@@ -165,13 +323,12 @@ public class App extends JFrame {
         JPanel bottomPanel = new JPanel(new BorderLayout(10, 0));
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.add(calculateButton);
-        buttonPanel.add(checkoutButton);
+        buttonPanel.add(cartButton);
         bottomPanel.add(new JScrollPane(subtotalTextArea), BorderLayout.CENTER);
         bottomPanel.add(buttonPanel, BorderLayout.EAST);
-        Front.add(bottomPanel, BorderLayout.SOUTH);
+        frontPanel.add(bottomPanel, BorderLayout.SOUTH);
 
-
-        MainPanel.add(Front, "Front");
+        return frontPanel;
     }
 
     private void calculateSubtotal() {
@@ -208,8 +365,58 @@ public class App extends JFrame {
                 }
             }
         }
-        // Update the text area with the formatted subtotal
         subtotalTextArea.setText(String.format("Subtotal: Rp %,.2f", subtotal));
+    }
+
+    private void addToCart() {
+        cartTableModel.setRowCount(0); 
+        for (int i = 0; i < productTableModel.getRowCount(); i++) {
+            Object quantityObj = productTableModel.getValueAt(i, 7);
+            if (quantityObj != null) {
+                try {
+                    int quantity = Integer.parseInt(quantityObj.toString());
+                    if (quantity > 0) {
+                        Object[] rowData = new Object[]{
+                                true, // Checkbox default true
+                                productTableModel.getValueAt(i, 0), // Nama
+                                productTableModel.getValueAt(i, 1), // Ukuran
+                                productTableModel.getValueAt(i, 2), // Warna
+                                productTableModel.getValueAt(i, 6), // Harga
+                                quantity
+                        };
+                        cartTableModel.addRow(rowData);
+                    }
+                } catch (NumberFormatException e) {
+                }
+            }
+        }
+        tabbedPane.setSelectedIndex(1);
+    }
+
+    private void calculateCartSubtotal() {
+        double subtotal = 0;
+        for (int i = 0; i < cartTableModel.getRowCount(); i++) {
+            boolean isSelected = (boolean) cartTableModel.getValueAt(i, 0);
+            if (isSelected) {
+                Object priceObj = cartTableModel.getValueAt(i, 4);
+                Object quantityObj = cartTableModel.getValueAt(i, 5);
+                if (priceObj != null && quantityObj != null) {
+                    try {
+                        double price = Double.parseDouble(priceObj.toString());
+                        int quantity = Integer.parseInt(quantityObj.toString());
+                        subtotal += price * quantity;
+                    } catch (NumberFormatException e) {
+                        System.err.println("Invalid number format in cart table row " + i + ": " + e.getMessage());
+                    }
+                }
+            }
+        }
+        try{
+        subtotal = dbHandler.hargaAfterVoucher(subtotal, voucherField.getText());
+        }catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage());
+        }
+        subtotalCheckoutLabel.setText(String.format("Rp %,.2f", subtotal));
     }
 
     private void gantiInformasiAkun(int e){
