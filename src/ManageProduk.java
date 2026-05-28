@@ -20,84 +20,48 @@ public class ManageProduk {
     }
 
     public void loadComboMerk(JComboBox<String> comboBox){
-
         comboBox.removeAllItems();
-
         try{
-
-            String query =
-                    "SELECT nama " +
-                            "FROM Merk " +
-                            "ORDER BY id_merk ASC";
-
+            String query = "SELECT nama FROM Merk ORDER BY id_merk ASC";
             PreparedStatement ps = conn.prepareStatement(query);
             ResultSet rs = ps.executeQuery();
-
             while(rs.next()){
-
                 comboBox.addItem(rs.getString("nama"));
-
             }
-
             rs.close();
             ps.close();
-
         }catch(Exception e){
             JOptionPane.showMessageDialog(null, e.getMessage());
         }
     }
 
     public void loadComboKategori(JComboBox<String> comboBox){
-
         comboBox.removeAllItems();
-
         try{
-
-            String query =
-                    "SELECT nama_kategori " +
-                            "FROM Kategori " +
-                            "ORDER BY id_kategori ASC";
-
+            String query = "SELECT nama_kategori FROM Kategori ORDER BY id_kategori ASC";
             PreparedStatement ps = conn.prepareStatement(query);
             ResultSet rs = ps.executeQuery();
-
             while(rs.next()){
-
                 comboBox.addItem(rs.getString("nama_kategori"));
-
             }
-
             rs.close();
             ps.close();
-
         }catch(Exception e){
             JOptionPane.showMessageDialog(null, e.getMessage());
         }
     }
 
     public void loadComboPemasok(JComboBox<String> comboBox){
-
         comboBox.removeAllItems();
-
         try{
-
-            String query =
-                    "SELECT nama " +
-                            "FROM Pemasok " +
-                            "ORDER BY id_pemasok ASC";
-
+            String query = "SELECT nama FROM Pemasok ORDER BY id_pemasok ASC";
             PreparedStatement ps = conn.prepareStatement(query);
             ResultSet rs = ps.executeQuery();
-
             while(rs.next()){
-
                 comboBox.addItem(rs.getString("nama"));
-
             }
-
             rs.close();
             ps.close();
-
         }catch(Exception e){
             JOptionPane.showMessageDialog(null, e.getMessage());
         }
@@ -115,16 +79,9 @@ public class ManageProduk {
         model.addColumn("Pemasok");
 
         try{
-
-            String query =
-                    "SELECT p.id_produk, " +
-                            "p.nama, " +
-                            "p.deskripsi, " +
-                            "m.nama AS merk, " +
+            String query = "SELECT p.id_produk, p.nama, p.deskripsi, m.nama AS merk, " +
                             "STRING_AGG(k.nama_kategori, ', ') AS kategori, " +
-                            "s.nama AS pemasok " +
-                            "FROM Produk p " +
-                            "JOIN Merk m " +
+                            "s.nama AS pemasok FROM Produk p JOIN Merk m " +
                             "ON p.id_merk = m.id_merk " +
                             "JOIN Pemasok s " +
                             "ON p.id_pemasok = s.id_pemasok " +
@@ -139,7 +96,6 @@ public class ManageProduk {
             ResultSet rs = ps.executeQuery();
 
             while(rs.next()){
-
                 model.addRow(new Object[]{
                         rs.getString("id_produk"),
                         rs.getString("nama"),
@@ -148,115 +104,68 @@ public class ManageProduk {
                         rs.getString("kategori"),
                         rs.getString("pemasok")
                 });
-
             }
 
             table.setModel(model);
 
             rs.close();
             ps.close();
-
         }catch(Exception e){
             JOptionPane.showMessageDialog(null, e.getMessage());
         }
     }
 
     public String getIdMerk(String namaMerk){
-
         String idMerk = "";
-
         try{
-
-            String query =
-                    "SELECT id_merk " +
-                            "FROM Merk " +
-                            "WHERE nama = ?";
-
+            String query = "SELECT id_merk FROM Merk WHERE nama = ?";
             PreparedStatement ps = conn.prepareStatement(query);
-
             ps.setString(1, namaMerk);
-
             ResultSet rs = ps.executeQuery();
-
             if(rs.next()){
-
                 idMerk = rs.getString("id_merk");
-
             }
-
             rs.close();
             ps.close();
-
         }catch(Exception e){
             JOptionPane.showMessageDialog(null, e.getMessage());
         }
-
         return idMerk;
     }
 
     public String getIdKategori(String namaKategori){
-
         String idKategori = "";
-
         try{
-
-            String query =
-                    "SELECT id_kategori " +
-                            "FROM Kategori " +
-                            "WHERE nama_kategori = ?";
-
+            String query = "SELECT id_kategori FROM Kategori WHERE nama_kategori = ?";
             PreparedStatement ps = conn.prepareStatement(query);
-
             ps.setString(1, namaKategori);
-
             ResultSet rs = ps.executeQuery();
-
             if(rs.next()){
-
                 idKategori = rs.getString("id_kategori");
-
             }
-
             rs.close();
             ps.close();
-
         }catch(Exception e){
             JOptionPane.showMessageDialog(null, e.getMessage());
         }
-
         return idKategori;
     }
 
     public String getIdPemasok(String namaPemasok){
-
         String idPemasok = "";
-
         try{
-
-            String query =
-                    "SELECT id_pemasok " +
-                            "FROM Pemasok " +
-                            "WHERE nama = ?";
-
+            String query = "SELECT id_pemasok FROM Pemasok WHERE nama = ?";
             PreparedStatement ps = conn.prepareStatement(query);
-
             ps.setString(1, namaPemasok);
-
             ResultSet rs = ps.executeQuery();
-
             if(rs.next()){
-
                 idPemasok = rs.getString("id_pemasok");
-
             }
-
             rs.close();
             ps.close();
-
         }catch(Exception e){
             JOptionPane.showMessageDialog(null, e.getMessage());
         }
-
         return idPemasok;
     }
 
@@ -267,10 +176,7 @@ public class ManageProduk {
             String idPemasok = getIdPemasok(namaPemasok);
             String idKategori = getIdKategori(namaKategori);
 
-            String queryProduk =
-                    "INSERT INTO Produk " +
-                            "(id_produk, status, nama, deskripsi, id_merk, id_pemasok) " +
-                            "VALUES (?, ?, ?, ?, ?, ?)";
+            String queryProduk = "INSERT INTO Produk(id_produk, status, nama, deskripsi, id_merk, id_pemasok) VALUES (?, ?, ?, ?, ?, ?)";
 
             PreparedStatement ps1 = conn.prepareStatement(queryProduk);
 
@@ -283,10 +189,7 @@ public class ManageProduk {
 
             ps1.executeUpdate();
 
-            String queryKategori =
-                    "INSERT INTO Produk_Mempunyai_Kategori " +
-                            "(id_kategori, id_produk) " +
-                            "VALUES (?, ?)";
+            String queryKategori = "INSERT INTO Produk_Mempunyai_Kategori(id_kategori, id_produk) VALUES (?, ?)";
 
             PreparedStatement ps2 = conn.prepareStatement(queryKategori);
 
@@ -299,6 +202,7 @@ public class ManageProduk {
             ps2.close();
 
             JOptionPane.showMessageDialog(null, "Produk berhasil ditambahkan");
+
             loadDataProduk(tabel);
         }catch(Exception e){
             JOptionPane.showMessageDialog(null, e.getMessage());
@@ -312,13 +216,7 @@ public class ManageProduk {
             String idPemasok = getIdPemasok(namaPemasok);
             String idKategori = getIdKategori(namaKategori);
 
-            String queryProduk =
-                    "UPDATE Produk " +
-                            "SET nama = ?, " +
-                            "deskripsi = ?, " +
-                            "id_merk = ?, " +
-                            "id_pemasok = ? " +
-                            "WHERE id_produk = ?";
+            String queryProduk = "UPDATE Produk SET nama = ?, deskripsi = ?, id_merk = ?, id_pemasok = ? WHERE id_produk = ?";
 
             PreparedStatement ps1 = conn.prepareStatement(queryProduk);
 

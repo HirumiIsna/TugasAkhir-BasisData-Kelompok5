@@ -12,8 +12,7 @@ public class ManagePemasok {
         this.conn = conn;
     }
 
-    // LOAD
-    public void loadPemasok(JTable table){
+    public void loadDataPemasok(JTable table){
 
         DefaultTableModel model = new DefaultTableModel();
 
@@ -31,49 +30,36 @@ public class ManagePemasok {
             ResultSet rs = ps.executeQuery();
 
             while(rs.next()){
-
                 model.addRow(new Object[]{
-                        rs.getString("id_pemasok"),
-                        rs.getString("nama"),
-                        rs.getString("email"),
-                        rs.getString("no_telp"),
-                        rs.getString("alamat")
+                        rs.getString(1),
+                        rs.getString(2),
+                        rs.getString(3),
+                        rs.getString(4),
+                        rs.getString(5)
                 });
-
             }
 
             table.setModel(model);
 
             rs.close();
             ps.close();
-
         }catch(Exception e){
             JOptionPane.showMessageDialog(null, e.getMessage());
         }
 
     }
 
-    // INSERT
-    public void insertPemasok(
-            String id,
-            String nama,
-            String email,
-            String telp,
-            String alamat
-    ){
-
+    public void insertPemasok(JTable tabel, String idPemasok, String namaPemasok, String emailPemasok, String telpPemasok, String alamatPemasok){
         try{
-
-            String query =
-                    "INSERT INTO Pemasok VALUES (?, ?, ?, ?, ?)";
+            String query = "INSERT INTO Pemasok VALUES (?, ?, ?, ?, ?)";
 
             PreparedStatement ps = conn.prepareStatement(query);
 
-            ps.setString(1, id);
-            ps.setString(2, nama);
-            ps.setString(3, email);
-            ps.setString(4, telp);
-            ps.setString(5, alamat);
+            ps.setString(1, idPemasok);
+            ps.setString(2, namaPemasok);
+            ps.setString(3, emailPemasok);
+            ps.setString(4, telpPemasok);
+            ps.setString(5, alamatPemasok);
 
             ps.executeUpdate();
 
@@ -81,35 +67,24 @@ public class ManagePemasok {
 
             JOptionPane.showMessageDialog(null, "Pemasok berhasil ditambahkan");
 
+            loadDataPemasok(tabel);
         }catch(Exception e){
             JOptionPane.showMessageDialog(null, e.getMessage());
         }
 
     }
 
-    // UPDATE
-    public void updatePemasok(
-            String id,
-            String nama,
-            String email,
-            String telp,
-            String alamat
-    ){
-
+    public void updatePemasok(JTable tabel, String idPemasok, String namaPemasok, String emailPemasok, String telpPemasok, String alamatPemasok){
         try{
-
-            String query =
-                    "UPDATE Pemasok " +
-                            "SET nama = ?, email = ?, no_telp = ?, alamat = ? " +
-                            "WHERE id_pemasok = ?";
+            String query = "UPDATE Pemasok SET nama = ?, email = ?, no_telp = ?, alamat = ? WHERE id_pemasok = ?";
 
             PreparedStatement ps = conn.prepareStatement(query);
 
-            ps.setString(1, nama);
-            ps.setString(2, email);
-            ps.setString(3, telp);
-            ps.setString(4, alamat);
-            ps.setString(5, id);
+            ps.setString(1, namaPemasok);
+            ps.setString(2, emailPemasok);
+            ps.setString(3, telpPemasok);
+            ps.setString(4, alamatPemasok);
+            ps.setString(5, idPemasok);
 
             ps.executeUpdate();
 
@@ -117,34 +92,39 @@ public class ManagePemasok {
 
             JOptionPane.showMessageDialog(null, "Pemasok berhasil diupdate");
 
+            loadDataPemasok(tabel);
         }catch(Exception e){
             JOptionPane.showMessageDialog(null, e.getMessage());
         }
 
     }
-
-    // DELETE
-    public void deletePemasok(String id){
-
+    public void deletePemasok(JTable tabel){
         try{
+            int row = tabel.getSelectedRow();
 
-            String query =
-                    "DELETE FROM Pemasok WHERE id_pemasok = ?";
+            if(row == -1){
+                JOptionPane.showMessageDialog(null, "Pilih data terlebih dahulu");
+                return;
+            }
 
+            DefaultTableModel model = (DefaultTableModel) tabel.getModel();
+
+            String idKategori = model.getValueAt(row, 0).toString();
+
+            String query = "DELETE FROM Pemasok WHERE id_pemasok = ?";
             PreparedStatement ps = conn.prepareStatement(query);
 
-            ps.setString(1, id);
+            ps.setString(1, idKategori);
 
             ps.executeUpdate();
-
             ps.close();
 
-            JOptionPane.showMessageDialog(null, "Pemasok berhasil dihapus");
+            JOptionPane.showMessageDialog(null, "Kategori berhasil dihapus");
 
-        }catch(Exception e){
+            loadDataPemasok(tabel);
+        } catch (Exception e){
             JOptionPane.showMessageDialog(null, e.getMessage());
         }
-
     }
 
 }

@@ -67,11 +67,8 @@ public class App extends JFrame {
     private ManageKategori manageKategori;
     private ManageMerk manageMerk;
 
-    private JTable TabelUmumProduk;
     private JButton simpanButtonProduk;
     private JButton updateButtonProduk;
-    private JButton deleteButton;
-    private JButton refreshDataButton;
     private JTextField TF_IDProduk;
     private JPanel IDProduk;
     private JTextField TF_NamaProduk;
@@ -91,7 +88,7 @@ public class App extends JFrame {
     private JTextField TF_DeskripsiMerk;
     private JPanel ListKategoriPanel;
     private JTable TabelManageKategori;
-    private JTextField TF_VarianProduk;
+    private JTextField TF_IDVarian;
     private JComboBox CMB_IDProduk;
     private JTextField TF_WarnaVarian;
     private JTextField TF_StokVarian;
@@ -121,7 +118,7 @@ public class App extends JFrame {
     private JTextField TF_NamaPemasok;
     private JTextField TF_EmailPemasok;
     private JTextField TF_TelpPemasok;
-    private JTextField TF_MailPemasok;
+    private JTextField TF_AlamatPemasok;
     private JButton updateButtonPemasok;
     private JTable TabelManagePemasok;
     private JButton refreshDataButtonPemasok;
@@ -129,6 +126,7 @@ public class App extends JFrame {
     private JButton simpanButtonPemasok;
     private JScrollPane JScrollPane;
     private JTextField TF_UkuranVarian;
+    private JTextField TF_BarcodeVarian;
 
     // Card Layout
     private CardLayout c1;
@@ -169,6 +167,13 @@ public class App extends JFrame {
         manageMerk = new ManageMerk(conn);
         managePemasok = new ManagePemasok(conn);
 
+        //Ngeload data dlu biar muncul ditabel
+        manageProduk.loadDataProduk(TabelManageProduk);
+        manageVarian.loadDataVarian(TabelManageVarian);
+        manageKategori.loadDataKategori(TabelManageKategori);
+        manageMerk.loadDataMerk(TabelManageMerk);
+        managePemasok.loadDataPemasok(TabelManagePemasok);
+
         //Manage Produk
         manageProduk.initializeComboBox(CMB_MerkProduk, CMB_KategoriProduk, CMB_PemasokProduk);
         simpanButtonProduk.addActionListener(e -> manageProduk.insertProduk(TabelManageProduk, TF_IDProduk.getText(), "Tersedia", TF_NamaProduk.getText(), TF_DeskripsiProduk.getText(), CMB_MerkProduk.getSelectedItem().toString(), CMB_PemasokProduk.getSelectedItem().toString(), CMB_KategoriProduk.getSelectedItem().toString()));
@@ -176,6 +181,30 @@ public class App extends JFrame {
         deleteButtonProduk.addActionListener(e -> manageProduk.deleteProduk(TabelManageProduk));
         refreshDataButtonProduk.addActionListener(e -> manageProduk.loadDataProduk(TabelManageProduk));
 
+        //Manage Varian
+        manageVarian.initializeComboBox(CMB_IDProduk);
+        simpanButtonVarian.addActionListener(e -> manageVarian.insertVarian(TabelManageVarian, CMB_IDProduk.getSelectedItem().toString(), TF_IDVarian.getText(), TF_UkuranVarian.getText(), TF_WarnaVarian.getText(), Integer.parseInt(TF_BeratVarian.getText()), Integer.parseInt(TF_StokVarian.getText()), Integer.parseInt(TF_HargaVarian.getText()), TF_BarcodeVarian.getText()));
+        updateButtonVarian.addActionListener(e -> manageVarian.updateVarian(TabelManageVarian, CMB_IDProduk.getSelectedItem().toString(), TF_IDVarian.getText(), TF_UkuranVarian.getText(), TF_WarnaVarian.getText(), Integer.parseInt(TF_BeratVarian.getText()), Integer.parseInt(TF_StokVarian.getText()), Integer.parseInt(TF_HargaVarian.getText()), TF_BarcodeVarian.getText()));
+        deleteButtonVarian.addActionListener(e -> manageVarian.deleteVarian(TabelManageVarian));
+        refreshDataButtonVarian.addActionListener(e -> manageVarian.loadDataVarian(TabelManageVarian));
+
+        //Manage Kategori
+        simpanButtonKategori.addActionListener(e -> manageKategori.insertKategori(TabelManageKategori, TF_IDKategori.getText(), TF_NamaKategori.getText(), TF_DeskripsiKategori.getText()));
+        updateButtonKategori.addActionListener(e -> manageKategori.updateKategori(TabelManageKategori, TF_IDKategori.getText(), TF_NamaKategori.getText(), TF_DeskripsiKategori.getText()));
+        deleteButtonKategori.addActionListener(e -> manageKategori.deleteKategori(TabelManageKategori));
+        refreshDataButtonKategori.addActionListener(e -> manageKategori.loadDataKategori(TabelManageKategori));
+
+        //Manage Merk
+        simpanButtonMerk.addActionListener(e -> manageMerk.insertMerk(TabelManageMerk, TF_IDMerk.getText(), TF_NamaMerk.getText(), TF_DeskripsiMerk.getText()));
+        updateButtonMerk.addActionListener(e -> manageMerk.updateMerk(TabelManageMerk, TF_IDMerk.getText(), TF_NamaMerk.getText(), TF_DeskripsiMerk.getText()));
+        deleteButtonMerk.addActionListener(e -> manageMerk.deleteMerk(TabelManageMerk));
+        refreshDataButtonMerk.addActionListener(e -> manageMerk.loadDataMerk(TabelManageMerk));
+
+        //Manage Pemasok
+        simpanButtonPemasok.addActionListener(e -> managePemasok.insertPemasok(TabelManagePemasok, TF_IDPemasok.getText(), TF_NamaPemasok.getText(), TF_EmailPemasok.getText(), TF_TelpPemasok.getText(), TF_AlamatPemasok.getText()));
+        updateButtonPemasok.addActionListener(e -> managePemasok.updatePemasok(TabelManagePemasok, TF_IDPemasok.getText(), TF_NamaPemasok.getText(), TF_EmailPemasok.getText(), TF_TelpPemasok.getText(), TF_AlamatPemasok.getText()));
+        deleteButtonPemasok.addActionListener(e -> managePemasok.deletePemasok(TabelManagePemasok));
+        refreshDataButtonPemasok.addActionListener(e -> managePemasok.loadDataPemasok(TabelManagePemasok));
         setVisible(true);
     }
 
