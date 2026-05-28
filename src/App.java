@@ -76,7 +76,7 @@ public class App extends JFrame {
         dbHelper = new DatabaseHelper(conn);
 
         // Setup komponen dari form
-        $$$setupUI$$$();  // Method ini akan di-generate oleh IntelliJ
+//        $$$setupUI$$$();  // Method ini akan di-generate oleh IntelliJ
 
         setContentPane(MainPanel);
         setSize(1280, 720);
@@ -87,10 +87,10 @@ public class App extends JFrame {
         c1.show(MainPanel, "pageUtama");
 
         // Setup Front panel (isi dengan placeholder dulu)
-        Front.setLayout(new BorderLayout());
-        JLabel loginLabel = new JLabel("Silakan login terlebih dahulu", SwingConstants.CENTER);
-        loginLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        Front.add(loginLabel, BorderLayout.CENTER);
+//        Front.setLayout(new BorderLayout());
+//        JLabel loginLabel = new JLabel("Silakan login terlebih dahulu", SwingConstants.CENTER);
+//        loginLabel.setFont(new Font("Arial", Font.BOLD, 16));
+//        Front.add(loginLabel, BorderLayout.CENTER);
 
         // Setup Back panel (isi dengan placeholder dulu)
         Back.setLayout(new BorderLayout());
@@ -329,12 +329,12 @@ public class App extends JFrame {
         }
 
         // Create frontend panel dan masukkan ke panel Front
-        frontEndPanel = new FrontEndPanel(dbHelper, loggedinUserID, loggedinuserNama);
-        Front.removeAll();
-        Front.setLayout(new BorderLayout());
-        Front.add(frontEndPanel, BorderLayout.CENTER);
-        Front.revalidate();
-        Front.repaint();
+//        frontEndPanel = new FrontEndPanel(dbHelper, loggedinUserID, loggedinuserNama);
+//        Front.removeAll();
+//        Front.setLayout(new BorderLayout());
+//        Front.add(frontEndPanel, BorderLayout.CENTER);
+//        Front.revalidate();
+//        Front.repaint();
 
         c1.show(MainPanel, "Front");
     }
