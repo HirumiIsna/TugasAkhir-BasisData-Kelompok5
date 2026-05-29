@@ -98,6 +98,7 @@ public class App extends JFrame {
     private JComboBox cbOpsi;
     private JTextField tfOpsi;
     private JLabel TierInfo;
+    private JPanel TransaksiHistory;
     private JTextArea ID;
 
     // Card Layout
@@ -259,6 +260,13 @@ public class App extends JFrame {
         });
 
         checkoutButton.addActionListener((e) -> checkoutRun());
+
+        tabbedPane1.addChangeListener(e -> {
+            if (tabbedPane1.getSelectedIndex() == 2) {
+                // Ganti atau refresh panel transaksi
+                tabbedPane1.setComponentAt(2, createTransactionsPanel());
+            }
+        });
 
 
         setVisible(true);
@@ -552,7 +560,7 @@ public class App extends JFrame {
 
             psTransaksi.setString(1, idTransaksi);
             psTransaksi.setDate(2, Date.valueOf(now));
-            psTransaksi.setInt(3, (int)hargaSub); // total_harga
+            psTransaksi.setInt(3, hargaAkhirFix);
             psTransaksi.setInt(4, totalBerat); // total_berat
             psTransaksi.setInt(5, (int)(hargaSub + ongkir - hargaAkhirFix)); // potongan_harga
             psTransaksi.setString(6, "Pending"); // status
@@ -1329,6 +1337,136 @@ public class App extends JFrame {
             return;
         }
         c1.show(MainPanel, "Front");
+    }
+
+    private JPanel createTransactionsPanel() {
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        JPanel containerPanel = new JPanel();
+        containerPanel.setLayout(new BoxLayout(containerPanel, BoxLayout.Y_AXIS));
+
+        // Query dengan join ke Pengiriman, Click_and_Deliver, Click_and_Collect
+        String query =
+                "SELECT t.id_transaksi, t.tanggal, t.total_harga, t.status AS status_transaksi, " +
+                        "       p.status AS status_pengiriman, " +
+                        "       COALESCE(cd.alamat, cc.alamat_gerai) AS alamat_pengiriman, " +
+                        "       CASE WHEN cd.id_pengiriman IS NOT NULL THEN 'Delivery' ELSE 'Collect' END AS jenis_pengiriman " +
+                        "FROM Transaksi t " +
+                        "JOIN Pengiriman p ON t.id_pengiriman = p.id_pengiriman " +
+                        "LEFT JOIN Click_and_Deliver cd ON p.id_pengiriman = cd.id_pengiriman " +
+                        "LEFT JOIN Click_and_Collect cc ON p.id_pengiriman = cc.id_pengiriman " +
+                        "WHERE t.id_pelanggan = ? " +
+                        "ORDER BY t.tanggal DESC";
+
+        try (PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setString(1, loggedinUserID);
+            try (ResultSet rs = ps.executeQuery()) {
+                boolean hasData = false;
+                while (rs.next()) {
+                    hasData = true;
+                    String idTx = rs.getString("id_transaksi");
+                    Date tanggal = rs.getDate("tanggal");
+                    double total = rs.getDouble("total_harga");
+                    String statusTransaksi = rs.getString("status_transaksi");
+                    String statusPengiriman = rs.getString("status_pengiriman");
+                    String alamat = rs.getString("alamat_pengiriman");
+                    String jenis = rs.getString("jenis_pengiriman");
+
+                    JPanel card = createTransactionsCard(idTx, tanggal, total, statusTransaksi, statusPengiriman, jenis, alamat);
+                    containerPanel.add(card);
+                    containerPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+                }
+                if (!hasData) {
+                    JPanel emptyPanel = new JPanel(new GridBagLayout());
+                    emptyPanel.add(new JLabel("Belum ada riwayat transaksi."));
+                    mainPanel.add(emptyPanel, BorderLayout.CENTER);
+                    return mainPanel;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JPanel errorPanel = new JPanel(new GridBagLayout());
+            errorPanel.add(new JLabel("Gagal memuat data transaksi: " + e.getMessage()));
+            mainPanel.add(errorPanel, BorderLayout.CENTER);
+            return mainPanel;
+        }
+
+        JScrollPane scrollPane = new JScrollPane(containerPanel);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        mainPanel.add(scrollPane, BorderLayout.CENTER);
+        return mainPanel;
+    }
+
+    private JPanel createTransactionsCard(String idTransaksi, Date tanggal, double totalHarga, String statusTransaksi, String statusPengiriman, String jenis, String alamat) {
+        JPanel cardPanel = new JPanel(new BorderLayout(15, 10));
+        cardPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1),
+                BorderFactory.createEmptyBorder(10, 15, 10, 15)
+        ));
+        cardPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
+
+        // Info kiri
+        JPanel infoPanel = new JPanel(new GridLayout(4, 1, 5, 5));
+        infoPanel.add(new JLabel("ID Transaksi: " + idTransaksi));
+        infoPanel.add(new JLabel("Tanggal: " + (tanggal != null ? tanggal.toString() : "-")));
+        infoPanel.add(new JLabel("Status Transaksi: " + statusTransaksi));
+        infoPanel.add(new JLabel("Pengiriman: " + jenis + " | " + statusPengiriman + " | " + alamat));
+
+        // Info kanan
+        JPanel actionPanel = new JPanel(new GridLayout(2, 1, 5, 5));
+        DecimalFormat df = new DecimalFormat("#,###");
+        JLabel priceLabel = new JLabel("Total: Rp " + df.format(totalHarga), SwingConstants.RIGHT);
+        priceLabel.setFont(new Font("Arial", Font.BOLD, 14));
+
+        JButton viewDetailButton = new JButton("Lihat Detail Barang");
+        viewDetailButton.addActionListener(e -> showTransactionDetail(idTransaksi));
+
+        actionPanel.add(priceLabel);
+        actionPanel.add(viewDetailButton);
+
+        cardPanel.add(infoPanel, BorderLayout.CENTER);
+        cardPanel.add(actionPanel, BorderLayout.EAST);
+        return cardPanel;
+    }
+
+    private void showTransactionDetail(String idTransaksi) {
+        JDialog detailDialog = new JDialog(this, "Detail Barang - Transaksi " + idTransaksi, true);
+        detailDialog.setSize(700, 400);
+        detailDialog.setLayout(new BorderLayout());
+
+        DefaultTableModel detailTableModel = new DefaultTableModel(
+                new Object[]{"Nama Produk", "Ukuran", "Warna", "Jumlah", "Harga Satuan", "Subtotal"}, 0
+        );
+        JTable detailTable = new JTable(detailTableModel);
+        detailDialog.add(new JScrollPane(detailTable), BorderLayout.CENTER);
+
+        String detailQuery =
+                "SELECT p.nama, vp.ukuran, vp.warna, dt.jumlah, vp.harga, (dt.jumlah * vp.harga) AS subtotal " +
+                        "FROM Detail_Transaksi dt " +
+                        "JOIN Varian_Produk vp ON dt.id_produk = vp.id_produk AND dt.id_varian = vp.id_varian " +
+                        "JOIN Produk p ON vp.id_produk = p.id_produk " +
+                        "WHERE dt.id_transaksi = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(detailQuery)) {
+            ps.setString(1, idTransaksi);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    detailTableModel.addRow(new Object[]{
+                            rs.getString("nama"),
+                            rs.getString("ukuran"),
+                            rs.getString("warna"),
+                            rs.getInt("jumlah"),
+                            rs.getDouble("harga"),
+                            rs.getDouble("subtotal")
+                    });
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Gagal memuat detail barang: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        detailDialog.setLocationRelativeTo(this);
+        detailDialog.setVisible(true);
     }
 
     public static void main(String[] args){

@@ -420,7 +420,7 @@
                   </component>
                 </children>
               </grid>
-              <grid id="427b" layout-manager="BorderLayout" hgap="0" vgap="0">
+              <grid id="427b" binding="TransaksiHistory" layout-manager="BorderLayout" hgap="0" vgap="0">
                 <constraints>
                   <tabbedpane title="Transaksi"/>
                 </constraints>
