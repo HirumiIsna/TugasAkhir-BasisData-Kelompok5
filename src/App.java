@@ -6,6 +6,7 @@ import src.backend.ManageProduct.ManagePemasok;
 import src.backend.ManageProduct.ManageProduk;
 import src.backend.ManageProduct.ManageVarian;
 import src.backend.ManageProduct.ManagePelanggan;
+import src.backend.ManageProduct.ManageTransaksi; // Import kelas baru
 import src.database.*;
 
 import javax.swing.*;
@@ -75,6 +76,7 @@ public class App extends JFrame {
     private ManageMerk manageMerk;
     private ManagePemasok managePemasok;
     private ManagePelanggan managePelanggan;
+    private ManageTransaksi manageTransaksi; // Ditambahkan
 
     // Komponen GUI Produk
     private JButton simpanButtonProduk;
@@ -148,6 +150,13 @@ public class App extends JFrame {
     private JButton refreshDataButtonPelanggan;
     private JTable TabelManagePelanggan;
 
+    // Komponen GUI Transaksi Backend (Admin)
+    private JTextField TF_IDTransaksi;
+    private JComboBox<String> CMB_StatusTransaksi;
+    private JButton updateButtonTransaksi;
+    private JButton refreshDataButtonTransaksi;
+    private JTable TabelManageTransaksi;
+
     // Untuk mode create varian
     private JTextField TF_IDProdukVarian;
 
@@ -196,6 +205,7 @@ public class App extends JFrame {
             manageMerk.loadDataMerk(TabelManageMerk);
             managePemasok.loadDataPemasok(TabelManagePemasok);
             managePelanggan.loadDataPelanggan(TabelManagePelanggan);
+            manageTransaksi.loadDataTransaksi(TabelManageTransaksi); // Ditambahkan ke refresh callback
             manageVarian.refreshComboIDProduk();
         };
 
@@ -205,6 +215,7 @@ public class App extends JFrame {
         manageMerk = new ManageMerk(DatabaseConnection.getConnection(), refreshAllTabs);
         managePemasok = new ManagePemasok(DatabaseConnection.getConnection(), refreshAllTabs);
         managePelanggan = new ManagePelanggan(DatabaseConnection.getConnection(), refreshAllTabs);
+        manageTransaksi = new ManageTransaksi(DatabaseConnection.getConnection(), refreshAllTabs); // Inisialisasi baru
 
         manageProduk.loadDataProduk(TabelManageProduk);
         manageVarian.loadDataVarian(TabelManageVarian);
@@ -212,6 +223,7 @@ public class App extends JFrame {
         manageMerk.loadDataMerk(TabelManageMerk);
         managePemasok.loadDataPemasok(TabelManagePemasok);
         managePelanggan.loadDataPelanggan(TabelManagePelanggan);
+        manageTransaksi.loadDataTransaksi(TabelManageTransaksi); // Memuat data transaksi saat start
 
         manageProduk.loadComboMerk(CMB_MerkProduk);
         manageProduk.loadComboPemasok(CMB_PemasokProduk);
@@ -234,6 +246,29 @@ public class App extends JFrame {
         }
 
         manageProduk.setKategoriComponents(btnPilihKategori, lblKategoriTerpilih);
+
+        updateButtonTransaksi.addActionListener(e -> {
+            if (TF_IDTransaksi.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Pilih transaksi dari tabel terlebih dahulu!");
+                return;
+            }
+            manageTransaksi.updateStatusTransaksi(TabelManageTransaksi,
+                    TF_IDTransaksi.getText().trim(),
+                    CMB_StatusTransaksi.getSelectedItem().toString());
+            clearFormTransaksi();
+        });
+
+        refreshDataButtonTransaksi.addActionListener(e -> manageTransaksi.loadDataTransaksi(TabelManageTransaksi));
+
+        TabelManageTransaksi.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                int row = TabelManageTransaksi.getSelectedRow();
+                if (row >= 0) {
+                    TF_IDTransaksi.setText(TabelManageTransaksi.getValueAt(row, 0).toString());
+                    CMB_StatusTransaksi.setSelectedItem(TabelManageTransaksi.getValueAt(row, 4).toString());
+                }
+            }
+        });
 
         simpanButtonProduk.addActionListener(e -> {
             if (TF_IDProduk.getText().trim().isEmpty() || TF_NamaProduk.getText().trim().isEmpty()) {
@@ -580,7 +615,10 @@ public class App extends JFrame {
         TF_AlamatPelanggan.setText("");
     }
 
-    // ==================== METHOD MENGGUNAKAN DAO ====================
+    private void clearFormTransaksi(){
+        TF_IDTransaksi.setText("");
+        if(CMB_StatusTransaksi.getItemCount() > 0) CMB_StatusTransaksi.setSelectedIndex(0);
+    }
 
     private void gantiInformasiAkun(int e){
         String informasi = JOptionPane.showInputDialog(this, "Masukan Data Pengganti : ");
