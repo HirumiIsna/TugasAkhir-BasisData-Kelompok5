@@ -263,8 +263,8 @@ public class App extends JFrame {
 
         tabbedPane1.addChangeListener(e -> {
             if (tabbedPane1.getSelectedIndex() == 2) {
-                // Ganti atau refresh panel transaksi
-                tabbedPane1.setComponentAt(2, createTransactionsPanel());
+                JPanel panel = buildTransactionsPanel("ALL", "DESC");
+                tabbedPane1.setComponentAt(2, panel);
             }
         });
 
@@ -1339,12 +1339,54 @@ public class App extends JFrame {
         c1.show(MainPanel, "Front");
     }
 
-    private JPanel createTransactionsPanel() {
-        JPanel mainPanel = new JPanel(new BorderLayout());
+    private JPanel buildTransactionsPanel(String filter, String order) {
+        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // Panel kontrol di atas
+        JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        controlPanel.setBorder(BorderFactory.createTitledBorder("Filter & Urutkan"));
+
+        // Filter dropdown
+        JLabel filterLabel = new JLabel("Filter Waktu:");
+        JComboBox<String> filterCombo = new JComboBox<>(new String[]{"All", "Last Week", "Last Month", "Last Year"});
+        filterCombo.setSelectedItem(filter.equals("ALL") ? "All" :
+                filter.equals("WEEK") ? "Last Week" :
+                        filter.equals("MONTH") ? "Last Month" : "Last Year");
+
+        // Sort dropdown
+        JLabel sortLabel = new JLabel("Urutkan:");
+        JComboBox<String> sortCombo = new JComboBox<>(new String[]{"Terbaru (DESC)", "Terlama (ASC)"});
+        sortCombo.setSelectedItem(order.equals("DESC") ? "Terbaru (DESC)" : "Terlama (ASC)");
+
+        JButton applyButton = new JButton("Terapkan");
+
+        controlPanel.add(filterLabel);
+        controlPanel.add(filterCombo);
+        controlPanel.add(sortLabel);
+        controlPanel.add(sortCombo);
+        controlPanel.add(applyButton);
+
+        mainPanel.add(controlPanel, BorderLayout.NORTH);
+
+        // Container untuk daftar kartu transaksi
         JPanel containerPanel = new JPanel();
         containerPanel.setLayout(new BoxLayout(containerPanel, BoxLayout.Y_AXIS));
 
-        // Query dengan join ke Pengiriman, Click_and_Deliver, Click_and_Collect
+        // Query dinamis
+        String selectedFilter = (String) filterCombo.getSelectedItem();
+        String filterCondition = "";
+        if ("Last Week".equals(selectedFilter)) {
+            filterCondition = "AND t.tanggal >= DATEADD(day, -7, GETDATE())";
+        } else if ("Last Month".equals(selectedFilter)) {
+            filterCondition = "AND t.tanggal >= DATEADD(month, -1, GETDATE())";
+        } else if ("Last Year".equals(selectedFilter)) {
+            filterCondition = "AND t.tanggal >= DATEADD(year, -1, GETDATE())";
+        }
+        // All -> tidak ada tambahan kondisi
+
+        String orderBy = sortCombo.getSelectedItem().equals("Terbaru (DESC)") ? "DESC" : "ASC";
+
         String query =
                 "SELECT t.id_transaksi, t.tanggal, t.total_harga, t.status AS status_transaksi, " +
                         "       p.status AS status_pengiriman, " +
@@ -1354,9 +1396,35 @@ public class App extends JFrame {
                         "JOIN Pengiriman p ON t.id_pengiriman = p.id_pengiriman " +
                         "LEFT JOIN Click_and_Deliver cd ON p.id_pengiriman = cd.id_pengiriman " +
                         "LEFT JOIN Click_and_Collect cc ON p.id_pengiriman = cc.id_pengiriman " +
-                        "WHERE t.id_pelanggan = ? " +
-                        "ORDER BY t.tanggal DESC";
+                        "WHERE t.id_pelanggan = ? " + filterCondition +
+                        " ORDER BY t.tanggal " + orderBy;
 
+        // Isi containerPanel dengan data
+        loadTransactionsToContainer(containerPanel, query);
+
+        JScrollPane scrollPane = new JScrollPane(containerPanel);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        mainPanel.add(scrollPane, BorderLayout.CENTER);
+
+        // Listener untuk tombol apply
+        applyButton.addActionListener(e -> {
+            String newFilter = (String) filterCombo.getSelectedItem();
+            String filterCode = "ALL";
+            if ("Last Week".equals(newFilter)) filterCode = "WEEK";
+            else if ("Last Month".equals(newFilter)) filterCode = "MONTH";
+            else if ("Last Year".equals(newFilter)) filterCode = "YEAR";
+
+            String newOrder = sortCombo.getSelectedItem().equals("Terbaru (DESC)") ? "DESC" : "ASC";
+            JPanel newPanel = buildTransactionsPanel(filterCode, newOrder);
+            tabbedPane1.setComponentAt(2, newPanel);
+            tabbedPane1.setSelectedIndex(2); // refresh tampilan
+        });
+
+        return mainPanel;
+    }
+
+    private void loadTransactionsToContainer(JPanel container, String query) {
+        container.removeAll();
         try (PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setString(1, loggedinUserID);
             try (ResultSet rs = ps.executeQuery()) {
@@ -1372,28 +1440,23 @@ public class App extends JFrame {
                     String jenis = rs.getString("jenis_pengiriman");
 
                     JPanel card = createTransactionsCard(idTx, tanggal, total, statusTransaksi, statusPengiriman, jenis, alamat);
-                    containerPanel.add(card);
-                    containerPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+                    container.add(card);
+                    container.add(Box.createRigidArea(new Dimension(0, 10)));
                 }
                 if (!hasData) {
-                    JPanel emptyPanel = new JPanel(new GridBagLayout());
-                    emptyPanel.add(new JLabel("Belum ada riwayat transaksi."));
-                    mainPanel.add(emptyPanel, BorderLayout.CENTER);
-                    return mainPanel;
+                    JLabel emptyLabel = new JLabel("Belum ada riwayat transaksi.", SwingConstants.CENTER);
+                    emptyLabel.setFont(new Font("Arial", Font.ITALIC, 14));
+                    container.add(emptyLabel);
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            JPanel errorPanel = new JPanel(new GridBagLayout());
-            errorPanel.add(new JLabel("Gagal memuat data transaksi: " + e.getMessage()));
-            mainPanel.add(errorPanel, BorderLayout.CENTER);
-            return mainPanel;
+            JLabel errorLabel = new JLabel("Gagal memuat data transaksi: " + e.getMessage(), SwingConstants.CENTER);
+            errorLabel.setForeground(Color.RED);
+            container.add(errorLabel);
         }
-
-        JScrollPane scrollPane = new JScrollPane(containerPanel);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        mainPanel.add(scrollPane, BorderLayout.CENTER);
-        return mainPanel;
+        container.revalidate();
+        container.repaint();
     }
 
     private JPanel createTransactionsCard(String idTransaksi, Date tanggal, double totalHarga, String statusTransaksi, String statusPengiriman, String jenis, String alamat) {
