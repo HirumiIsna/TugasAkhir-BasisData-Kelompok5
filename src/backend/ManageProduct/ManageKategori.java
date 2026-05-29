@@ -2,14 +2,13 @@ package src.backend.ManageProduct;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.sql.*;
+import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
 import src.database.KategoriDAO;
 
 public class ManageKategori {
     private KategoriDAO kategoriDAO;
-    private JTable currentTable;
     private Runnable refreshCallback;
 
     public ManageKategori(Connection conn) {
@@ -22,7 +21,6 @@ public class ManageKategori {
     }
 
     public void loadDataKategori(JTable table) {
-        this.currentTable = table;
         DefaultTableModel model = new DefaultTableModel();
         model.addColumn("ID Kategori");
         model.addColumn("Nama");

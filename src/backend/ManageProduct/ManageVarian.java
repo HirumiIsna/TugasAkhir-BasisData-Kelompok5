@@ -2,7 +2,7 @@ package src.backend.ManageProduct;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.sql.*;
+import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
 import src.database.VarianProdukDAO;
@@ -12,6 +12,12 @@ public class ManageVarian {
     private VarianProdukDAO varianDAO;
     private ProdukDAO produkDAO;
     private Runnable refreshCallback;
+
+    // Untuk mode CREATE (input ID produk manual)
+    private JTextField txtIDProdukCreate;
+
+    // Untuk mode UPDATE (dropdown ID produk)
+    private JComboBox<String> cmbIDProdukUpdate;
 
     public ManageVarian(Connection conn) {
         this.varianDAO = new VarianProdukDAO(conn);
@@ -24,15 +30,28 @@ public class ManageVarian {
         this.refreshCallback = refreshCallback;
     }
 
-    public void initializeComboBox(JComboBox<String> cmbIDProduk) {
-        loadComboIDProduk(cmbIDProduk);
+    // Untuk mode CREATE (input ID produk manual)
+    public void setCreateModeComponents(JTextField txtIDProduk) {
+        this.txtIDProdukCreate = txtIDProduk;
     }
 
-    public void loadComboIDProduk(JComboBox<String> comboBox) {
-        comboBox.removeAllItems();
-        List<Map<String, Object>> produkList = produkDAO.getAllForAdmin();
-        for (Map<String, Object> p : produkList) {
-            comboBox.addItem((String) p.get("id_produk"));
+    // Untuk mode UPDATE (dropdown ID produk)
+    public void setUpdateModeComponents(JComboBox<String> cmbIDProduk) {
+        this.cmbIDProdukUpdate = cmbIDProduk;
+        refreshComboIDProduk();
+    }
+
+    public void refreshComboIDProduk() {
+        if (cmbIDProdukUpdate != null) {
+            String selected = (String) cmbIDProdukUpdate.getSelectedItem();
+            cmbIDProdukUpdate.removeAllItems();
+            List<Map<String, Object>> produkList = produkDAO.getAllForAdmin();
+            for (Map<String, Object> p : produkList) {
+                cmbIDProdukUpdate.addItem((String) p.get("id_produk"));
+            }
+            if (selected != null) {
+                cmbIDProdukUpdate.setSelectedItem(selected);
+            }
         }
     }
 
@@ -68,11 +87,19 @@ public class ManageVarian {
         return varianDAO.exists(idProduk, idVarian);
     }
 
+    // INSERT (CREATE) - menggunakan input manual ID Produk
     public void insertVarian(JTable tabel, String idProduk, String idVarian, String ukuran, String warna,
                              int berat, int stok, int harga, String barcode) {
+        if (idProduk == null || idProduk.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(null,
+                    "ID Produk harus diisi!",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         if (isVarianExist(idProduk, idVarian)) {
             JOptionPane.showMessageDialog(null,
-                    "Varian dengan ID " + idVarian + " untuk produk " + idProduk + " sudah ada. Gunakan ID yang berbeda atau gunakan Update.",
+                    "Varian dengan ID " + idVarian + " untuk produk " + idProduk + " sudah ada.",
                     "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -80,17 +107,19 @@ public class ManageVarian {
         if (varianDAO.insert(idProduk, idVarian, ukuran, warna, berat, stok, harga, barcode)) {
             JOptionPane.showMessageDialog(null, "Varian berhasil ditambahkan");
             loadDataVarian(tabel);
+            refreshComboIDProduk();
             refreshAllTabs();
         } else {
             JOptionPane.showMessageDialog(null, "Gagal menambahkan varian.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
+    // UPDATE - menggunakan dropdown ID Produk
     public void updateVarian(JTable tabel, String idProduk, String idVarian, String ukuran, String warna,
                              int berat, int stok, int harga, String barcode) {
         if (!isVarianExist(idProduk, idVarian)) {
             JOptionPane.showMessageDialog(null,
-                    "Varian dengan ID " + idVarian + " untuk produk " + idProduk + " tidak ditemukan. Gunakan Create untuk data baru.",
+                    "Varian dengan ID " + idVarian + " untuk produk " + idProduk + " tidak ditemukan.",
                     "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -98,6 +127,7 @@ public class ManageVarian {
         if (varianDAO.update(idProduk, idVarian, ukuran, warna, berat, stok, harga, barcode)) {
             JOptionPane.showMessageDialog(null, "Varian berhasil diupdate");
             loadDataVarian(tabel);
+            refreshComboIDProduk();
             refreshAllTabs();
         } else {
             JOptionPane.showMessageDialog(null, "Gagal mengupdate varian.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -124,6 +154,7 @@ public class ManageVarian {
             if (varianDAO.delete(idProduk, idVarian)) {
                 JOptionPane.showMessageDialog(null, "Varian berhasil dihapus");
                 loadDataVarian(tabel);
+                refreshComboIDProduk();
                 refreshAllTabs();
             } else {
                 JOptionPane.showMessageDialog(null, "Gagal menghapus varian. Varian sudah pernah terjual.", "Error", JOptionPane.ERROR_MESSAGE);

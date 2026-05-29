@@ -2,7 +2,7 @@ package src.backend.ManageProduct;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.sql.*;
+import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
 import src.database.MerkDAO;
