@@ -179,11 +179,196 @@
                   <grid id="ffabd" layout-manager="GridBagLayout">
                     <constraints>
                       <grid row="0" column="3" row-span="2" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                      <gridbag weightx="0.3" weighty="0.0"/>
+                      <gridbag weightx="0.1" weighty="0.0"/>
                     </constraints>
                     <properties/>
                     <border type="none"/>
-                    <children/>
+                    <children>
+                      <component id="dbef6" class="javax.swing.JLabel">
+                        <constraints>
+                          <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
+                          <gridbag top="5" left="20" bottom="5" right="5" weightx="0.2" weighty="0.05"/>
+                        </constraints>
+                        <properties>
+                          <font size="24"/>
+                          <text value="Informasi Transaksi"/>
+                        </properties>
+                      </component>
+                      <component id="47e2c" class="javax.swing.JLabel">
+                        <constraints>
+                          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                          <gridbag top="5" left="20" bottom="5" right="5" weightx="0.2" weighty="0.0"/>
+                        </constraints>
+                        <properties>
+                          <text value="Jenis Pengiriman : "/>
+                        </properties>
+                      </component>
+                      <component id="42573" class="javax.swing.JLabel">
+                        <constraints>
+                          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                          <gridbag top="5" left="20" bottom="5" right="5" weightx="0.2" weighty="0.0"/>
+                        </constraints>
+                        <properties>
+                          <text value="Ekspedisi : "/>
+                        </properties>
+                      </component>
+                      <component id="3cadf" class="javax.swing.JLabel">
+                        <constraints>
+                          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                          <gridbag top="5" left="20" bottom="5" right="5" weightx="0.2" weighty="0.0"/>
+                        </constraints>
+                        <properties>
+                          <text value="Alamat : "/>
+                        </properties>
+                      </component>
+                      <component id="83d01" class="javax.swing.JTextArea" binding="textArea1" default-binding="true">
+                        <constraints>
+                          <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
+                            <preferred-size width="150" height="50"/>
+                          </grid>
+                          <gridbag top="5" left="5" bottom="5" right="5" weightx="0.2" weighty="0.1"/>
+                        </constraints>
+                        <properties/>
+                      </component>
+                      <component id="90d06" class="javax.swing.JLabel">
+                        <constraints>
+                          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                          <gridbag top="5" left="20" bottom="5" right="5" weightx="0.0" weighty="0.0"/>
+                        </constraints>
+                        <properties>
+                          <text value="Voucher : "/>
+                        </properties>
+                      </component>
+                      <component id="82e58" class="javax.swing.JLabel">
+                        <constraints>
+                          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                          <gridbag top="5" left="20" bottom="5" right="5" weightx="0.0" weighty="0.0"/>
+                        </constraints>
+                        <properties>
+                          <text value="Subtotal : "/>
+                        </properties>
+                      </component>
+                      <component id="a0b26" class="javax.swing.JLabel">
+                        <constraints>
+                          <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                          <gridbag top="5" left="20" bottom="5" right="5" weightx="0.0" weighty="0.0"/>
+                        </constraints>
+                        <properties>
+                          <text value="Bonus Tier : "/>
+                        </properties>
+                      </component>
+                      <component id="41b71" class="javax.swing.JLabel">
+                        <constraints>
+                          <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                          <gridbag top="5" left="20" bottom="5" right="5" weightx="0.0" weighty="0.0"/>
+                        </constraints>
+                        <properties>
+                          <text value="Metode Pembayaran : "/>
+                        </properties>
+                      </component>
+                      <component id="5a2ef" class="javax.swing.JLabel">
+                        <constraints>
+                          <grid row="8" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                          <gridbag top="5" left="20" bottom="5" right="5" weightx="0.0" weighty="0.0"/>
+                        </constraints>
+                        <properties>
+                          <text value="Label"/>
+                        </properties>
+                      </component>
+                      <component id="50f60" class="javax.swing.JLabel">
+                        <constraints>
+                          <grid row="9" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                          <gridbag top="5" left="20" bottom="5" right="5" weightx="0.0" weighty="0.0"/>
+                        </constraints>
+                        <properties>
+                          <text value="Label"/>
+                        </properties>
+                      </component>
+                      <component id="805bf" class="javax.swing.JLabel">
+                        <constraints>
+                          <grid row="10" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                          <gridbag top="5" left="20" bottom="5" right="5" weightx="0.0" weighty="0.0"/>
+                        </constraints>
+                        <properties>
+                          <text value="Label"/>
+                        </properties>
+                      </component>
+                      <component id="6d33d" class="javax.swing.JComboBox" binding="comboBox2" default-binding="true">
+                        <constraints>
+                          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+                          <gridbag top="5" left="5" bottom="5" right="5" weightx="0.0" weighty="0.0"/>
+                        </constraints>
+                        <properties/>
+                      </component>
+                      <component id="3f3ea" class="javax.swing.JComboBox" binding="comboBox1" default-binding="true">
+                        <constraints>
+                          <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+                          <gridbag top="5" left="5" bottom="5" right="5" weightx="0.0" weighty="0.0"/>
+                        </constraints>
+                        <properties/>
+                      </component>
+                      <component id="67808" class="javax.swing.JLabel">
+                        <constraints>
+                          <grid row="5" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                          <gridbag top="5" left="5" bottom="5" right="5" weightx="0.0" weighty="0.0"/>
+                        </constraints>
+                        <properties>
+                          <text value="Label"/>
+                        </properties>
+                      </component>
+                      <component id="4e9a" class="javax.swing.JComboBox" binding="comboBox3" default-binding="true">
+                        <constraints>
+                          <grid row="7" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+                          <gridbag top="5" left="5" bottom="5" right="5" weightx="0.0" weighty="0.0"/>
+                        </constraints>
+                        <properties/>
+                      </component>
+                      <component id="56a3e" class="javax.swing.JLabel">
+                        <constraints>
+                          <grid row="6" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                          <gridbag top="5" left="5" bottom="5" right="5" weightx="0.0" weighty="0.0"/>
+                        </constraints>
+                        <properties>
+                          <text value="Label"/>
+                        </properties>
+                      </component>
+                      <component id="a6878" class="javax.swing.JTextField" binding="textField2" default-binding="true">
+                        <constraints>
+                          <grid row="4" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                            <preferred-size width="150" height="-1"/>
+                          </grid>
+                          <gridbag top="5" left="5" bottom="5" right="5" weightx="0.0" weighty="0.0"/>
+                        </constraints>
+                        <properties/>
+                      </component>
+                      <component id="18558" class="javax.swing.JTextArea" binding="textArea2" default-binding="true">
+                        <constraints>
+                          <grid row="8" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
+                            <preferred-size width="150" height="50"/>
+                          </grid>
+                          <gridbag top="5" left="5" bottom="5" right="5" weightx="0.0" weighty="0.0"/>
+                        </constraints>
+                        <properties/>
+                      </component>
+                      <component id="2477e" class="javax.swing.JTextArea" binding="textArea3" default-binding="true">
+                        <constraints>
+                          <grid row="9" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
+                            <preferred-size width="150" height="50"/>
+                          </grid>
+                          <gridbag top="5" left="5" bottom="5" right="5" weightx="0.0" weighty="0.0"/>
+                        </constraints>
+                        <properties/>
+                      </component>
+                      <component id="edf62" class="javax.swing.JTextArea" binding="textArea4" default-binding="true">
+                        <constraints>
+                          <grid row="10" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
+                            <preferred-size width="150" height="50"/>
+                          </grid>
+                          <gridbag top="5" left="5" bottom="5" right="5" weightx="0.0" weighty="0.0"/>
+                        </constraints>
+                        <properties/>
+                      </component>
+                    </children>
                   </grid>
                   <component id="187c4" class="javax.swing.JLabel" binding="LBjumlah">
                     <constraints>
@@ -224,6 +409,15 @@
                       <borderPainted value="false"/>
                       <foreground color="-1"/>
                       <text value="Delete All"/>
+                    </properties>
+                  </component>
+                  <component id="d5288" class="javax.swing.JButton" binding="checkoutButton" default-binding="true">
+                    <constraints>
+                      <grid row="2" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="1" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="20" bottom="5" right="5" weightx="0.0" weighty="1.0"/>
+                    </constraints>
+                    <properties>
+                      <text value="Checkout"/>
                     </properties>
                   </component>
                 </children>

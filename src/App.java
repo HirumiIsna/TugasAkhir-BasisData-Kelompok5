@@ -79,6 +79,15 @@ public class App extends JFrame {
     private JScrollPane JKeranjang;
     private JButton deleteSelectedButton;
     private JButton deleteAllButton;
+    private JTextArea textArea1;
+    private JComboBox comboBox1;
+    private JComboBox comboBox2;
+    private JButton checkoutButton;
+    private JComboBox comboBox3;
+    private JTextField textField2;
+    private JTextArea textArea2;
+    private JTextArea textArea3;
+    private JTextArea textArea4;
     private JTextArea ID;
 
     // Card Layout
