@@ -97,6 +97,7 @@ public class App extends JFrame {
     private JLabel lbMethod2;
     private JComboBox cbOpsi;
     private JTextField tfOpsi;
+    private JLabel TierInfo;
     private JTextArea ID;
 
     // Card Layout
@@ -173,9 +174,11 @@ public class App extends JFrame {
             int result = JOptionPane.showConfirmDialog(this, "Apakah ingin lanjut?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
 
             if(result == JOptionPane.NO_OPTION) return;
-
             int index = tableKeranjang.getSelectedRow();
-
+            if(index == -1){
+                JOptionPane.showMessageDialog(this, "Pilih item terlebih dahulu!");
+                return;
+            }
             keranjangItem.remove(index);
             refreshDataPengguna();
             refreshHarga();
@@ -278,39 +281,434 @@ public class App extends JFrame {
             return;
         }
 
-        // Cek voucher
+        double persentaseDiskonTier = 0.0;
+        try {
+            String queryTier = "SELECT id_tier FROM Pelanggan WHERE id_pelanggan = ?";
+            PreparedStatement psTier = conn.prepareStatement(queryTier);
+            psTier.setString(1, loggedinUserID);
+            ResultSet rsTier = psTier.executeQuery();
+
+            if (rsTier.next()) {
+                String idTier = rsTier.getString("id_tier");
+                switch (idTier) {
+                    case "TR02": persentaseDiskonTier = 0.02; break; // 2%
+                    case "TR03": persentaseDiskonTier = 0.04; break; // 4%
+                    case "TR04": persentaseDiskonTier = 0.06; break; // 6%
+                    case "TR05": persentaseDiskonTier = 0.08; break; // 8%
+                }
+            }
+            rsTier.close();
+            psTier.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Gagal mengambil data Tier: " + e.getMessage());
+            return;
+        }
+
+        double nominalDiskonTier = hargaSub * persentaseDiskonTier;
+        double hargaSubSetelahTier = hargaSub - nominalDiskonTier;
+
+        double hargaAkhir = ongkir + hargaSubSetelahTier;
+
+        // simpan voucher sementara
+        String idVoucherDipakai = null;
+
+        // Validasi Voucher
         if(!tfVoucher.getText().trim().isEmpty()){
             try{
-                String query =  "SELECT v.id_voucher,v.kode,v.min_belanja,v.tgl_mulai,v.tgl_berlaku,v.kuota,\n" +
-                                "    CASE\n" +
-                                "        WHEN p.id_voucher IS NOT NULL THEN 'POTONGAN'\n" +
-                                "        WHEN o.id_voucher IS NOT NULL THEN 'ONGKIR'\n" +
-                                "        WHEN d.id_voucher IS NOT NULL THEN 'DISKON'\n" +
-                                "        ELSE 'TIDAK VALID'\n" +
-                                "    END AS tipe_voucher\n" +
-                                "FROM Voucher v\n" +
-                                "LEFT JOIN Potongan p ON v.id_voucher = p.id_voucher\n" +
-                                "LEFT JOIN Ongkir o ON v.id_voucher = o.id_voucher\n" +
-                                "LEFT JOIN Diskon d ON v.id_voucher = d.id_voucher\n" +
-                                "WHERE v.kode = ?;";
+                String query =
+                        "SELECT v.id_voucher,v.min_belanja,v.tgl_mulai,v.tgl_berlaku,v.kuota, " +
+                                "CASE " +
+                                "WHEN p.id_voucher IS NOT NULL THEN 'POTONGAN' " +
+                                "WHEN o.id_voucher IS NOT NULL THEN 'ONGKIR' " +
+                                "WHEN d.id_voucher IS NOT NULL THEN 'DISKON' " +
+                                "ELSE 'TIDAK VALID' " +
+                                "END AS tipe_voucher " +
+                                "FROM Voucher v " +
+                                "LEFT JOIN Potongan p ON v.id_voucher = p.id_voucher " +
+                                "LEFT JOIN Ongkir o ON v.id_voucher = o.id_voucher " +
+                                "LEFT JOIN Diskon d ON v.id_voucher = d.id_voucher " +
+                                "WHERE v.kode = ?";
 
                 PreparedStatement ps = conn.prepareStatement(query);
                 ps.setString(1, tfVoucher.getText().trim());
 
                 ResultSet rs = ps.executeQuery();
 
-                if(!rs.next()) {
+                if(!rs.next()){
                     JOptionPane.showMessageDialog(this, "Invalid Kode Voucher!");
                     return;
                 }
 
-                // Cek stok voucher
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, e.getMessage());
+                // cek kuota
+                if(rs.getInt(5) <= 0){
+                    JOptionPane.showMessageDialog(this, "Voucher habis");
+                    return;
+                }
+
+                // cek minimum belanja
+                int minBelanja = rs.getInt(2);
+
+                if(minBelanja > hargaAkhir){
+                    JOptionPane.showMessageDialog(this,
+                            "Minimal pembelian Rp. " + minBelanja);
+                    return;
+                }
+
+                // cek tanggal
+                Date tnggl_max = rs.getDate(4);
+                Date tnggl_min = rs.getDate(3);
+
+                Date now = new Date(System.currentTimeMillis());
+
+                if(!(now.after(tnggl_min) && now.before(tnggl_max))){
+                    JOptionPane.showMessageDialog(this,
+                            "Voucher kadaluarsa");
+                    return;
+                }
+
+                String tipeVoucher = rs.getString(6);
+                String idVoucher = rs.getString(1);
+
+                idVoucherDipakai = idVoucher;
+
+                // POTONGAN
+                if(tipeVoucher.equalsIgnoreCase("POTONGAN")){
+                    String queryPotongan =
+                            "SELECT nominal FROM Potongan WHERE id_voucher = ?";
+
+                    PreparedStatement ps2 = conn.prepareStatement(queryPotongan);
+
+                    ps2.setString(1, idVoucher);
+
+                    ResultSet rs2 = ps2.executeQuery();
+
+                    if(rs2.next()){
+                        int nominal = rs2.getInt("nominal");
+                        hargaAkhir -= nominal;
+                        if(hargaAkhir < 0){
+                            hargaAkhir = 0;
+                        }
+                    }
+                }
+
+                else if(tipeVoucher.equalsIgnoreCase("ONGKIR")){
+
+                    String queryOngkir = "SELECT persen_diskon, maks_diskon FROM Ongkir WHERE id_voucher = ?";
+
+                    PreparedStatement ps2 = conn.prepareStatement(queryOngkir);
+
+                    ps2.setString(1, idVoucher);
+
+                    ResultSet rs2 = ps2.executeQuery();
+
+                    if(rs2.next()){
+                        double persenDiskon = rs2.getDouble("persen_diskon");
+
+                        int maksDiskon = rs2.getInt("maks_diskon");
+
+                        int potongan = (int)(ongkir * (persenDiskon / 100.0));
+
+                        if(potongan > maksDiskon){
+                            potongan = maksDiskon;
+                        }
+
+                        double ongkirAkhir = ongkir - potongan;
+
+                        if(ongkirAkhir < 0){
+                            ongkirAkhir = 0;
+                        }
+
+                        hargaAkhir = hargaSub + ongkirAkhir;
+                    }
+                }
+
+                else if(tipeVoucher.equalsIgnoreCase("DISKON")){
+
+                    String queryDiskon = "SELECT persen_diskon, maks_diskon FROM Diskon WHERE id_voucher = ?";
+
+                    PreparedStatement ps2 = conn.prepareStatement(queryDiskon);
+                    ps2.setString(1, idVoucher);
+                    ResultSet rs2 = ps2.executeQuery();
+
+                    if(rs2.next()){
+                        double persenDiskon = rs2.getDouble("persen_diskon");
+
+                        int maksDiskon = rs2.getInt("maks_diskon");
+                        int potongan = (int)(hargaAkhir * (persenDiskon / 100.0));
+
+                        if(potongan > maksDiskon){
+                            potongan = maksDiskon;
+                        }
+
+                        hargaAkhir -= potongan;
+
+                        if(hargaAkhir < 0){
+                            hargaAkhir = 0;
+                        }
+                    }
+                }
+
+            } catch (Exception e){
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(this,
+                        e.getMessage());
                 return;
             }
         }
 
+        // Konfirmasi Akhir
+        int hargaAkhirFix = (int) hargaAkhir;
+
+        int confirm = JOptionPane.showConfirmDialog(this, "Total Pembayaran : Rp. " + hargaAkhirFix +
+                        "\nLanjut checkout?",
+                "Konfirmasi Checkout",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if(confirm != JOptionPane.YES_OPTION){
+            return;
+        }
+
+        try {
+            conn.setAutoCommit(false);
+
+            LocalDate now = LocalDate.now();
+
+            // GENERATE ID
+            String idTransaksi = "TR" + System.currentTimeMillis()%1000000000;
+
+            String idPengiriman = "PG" + System.currentTimeMillis()%1000000000;
+
+            // TOTAL BERAT
+            int totalBerat = 0;
+
+            for(Object[] item : keranjangItem){
+                totalBerat += ((int)item[9] * (int)item[5]);
+            }
+
+            // INSERT PENGIRIMAN
+            String queryPengiriman = "INSERT INTO Pengiriman VALUES (?, ?)";
+            PreparedStatement psPengiriman = conn.prepareStatement(queryPengiriman);
+
+            psPengiriman.setString(1, idPengiriman);
+            psPengiriman.setString(2, "Barang belum diambil");
+
+            psPengiriman.executeUpdate();
+
+            // CLICK AND COLLECT
+            if(cbPengiriman.getSelectedItem().toString().equals("Collect")){
+                String kodePengambilan = "AMB" + (int)(Math.random()*999999);
+                LocalDate batasAmbil = now.plusWeeks(1);
+
+                String queryCollect = "INSERT INTO Click_and_Collect VALUES (?, ?, ?, ?, ?)";
+                PreparedStatement psCollect = conn.prepareStatement(queryCollect);
+
+                psCollect.setString(1, idPengiriman);
+                psCollect.setString(2, taAlamat.getText());
+                psCollect.setDate(3, Date.valueOf(batasAmbil));
+                psCollect.setString(4, kodePengambilan);
+                psCollect.setString(5, "Belum Diambil");
+
+                psCollect.executeUpdate();
+            }
+            // CLICK AND DELIVERY
+            else {
+                String namaEkspedisi = cbEkspedisi.getSelectedItem().toString();
+                String queryCariEkspedisi = "SELECT id_ekspedisi " +
+                        "FROM Ekspedisi " +
+                        "WHERE nama = ?";
+
+                PreparedStatement psCari = conn.prepareStatement(queryCariEkspedisi);
+
+                psCari.setString(1, namaEkspedisi);
+
+                ResultSet rsEkspedisi = psCari.executeQuery();
+
+                String idEkspedisi = "";
+
+                if(rsEkspedisi.next()){
+                    idEkspedisi = rsEkspedisi.getString(1);
+                }
+
+                String queryDelivery = "INSERT INTO Click_and_Deliver VALUES (?, ?, ?, ?, ?)";
+                PreparedStatement psDelivery = conn.prepareStatement(queryDelivery);
+
+                int noResi = (int)(Math.random() * 9000) + 1000;
+                psDelivery.setString(1, idPengiriman);
+                psDelivery.setString(2, taAlamat.getText());
+                psDelivery.setInt(3, noResi);
+                psDelivery.setInt(4, 7);
+                psDelivery.setString(5, idEkspedisi);
+
+                psDelivery.executeUpdate();
+            }
+
+            // INSERT TRANSAKSI
+            String queryTransaksi = "INSERT INTO Transaksi " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+            PreparedStatement psTransaksi = conn.prepareStatement(queryTransaksi);
+
+            psTransaksi.setString(1, idTransaksi);
+            psTransaksi.setDate(2, Date.valueOf(now));
+            psTransaksi.setInt(3, (int)hargaSub); // total_harga
+            psTransaksi.setInt(4, totalBerat); // total_berat
+            psTransaksi.setInt(5, (int)(hargaSub + ongkir - hargaAkhirFix)); // potongan_harga
+            psTransaksi.setString(6, "Pending"); // status
+            psTransaksi.setString(7, idPengiriman);
+            psTransaksi.setString(8, loggedinUserID);
+
+            if(idVoucherDipakai != null){
+                psTransaksi.setString(9, idVoucherDipakai);
+            } else {
+                psTransaksi.setNull(9, Types.VARCHAR);
+            }
+
+            psTransaksi.executeUpdate();
+
+            // METODE PEMBAYARAN
+            String method = cbMethod.getSelectedItem().toString();
+
+            // TRANSFER BANK
+            if(method.equals("Bank")){
+                String queryBank = "INSERT INTO Transfer_Bank " +
+                        "VALUES (?, ?, ?)";
+
+                PreparedStatement psBank = conn.prepareStatement(queryBank);
+
+                psBank.setString(1, idTransaksi);
+
+                psBank.setString(2, cbOpsi.getSelectedItem().toString());
+
+                psBank.setString(3, tfOpsi.getText());
+
+                psBank.executeUpdate();
+            }
+
+            // KREDIT
+            else if(method.equals("Kredit")){
+                String queryKredit = "INSERT INTO Kredit " +
+                        "VALUES (?, ?, ?, ?)";
+
+                PreparedStatement psKredit = conn.prepareStatement(queryKredit);
+
+                psKredit.setString(1, idTransaksi);
+
+                psKredit.setString(2, cbOpsi.getSelectedItem().toString());
+
+                psKredit.setDate(3, Date.valueOf(LocalDate.of(2030,1,1)));
+
+                psKredit.setString(4, tfOpsi.getText());
+
+                psKredit.executeUpdate();
+            }
+
+            // DOMPET DIGITAL
+            else if(method.equals("Dompet Digital")){
+                String queryDompet = "INSERT INTO Dompet_Digital " +
+                        "VALUES (?, ?, ?)";
+
+                PreparedStatement psDompet = conn.prepareStatement(queryDompet);
+
+                psDompet.setString(1, idTransaksi);
+
+                psDompet.setString(2, cbOpsi.getSelectedItem().toString());
+
+                psDompet.setString(3, tfOpsi.getText());
+
+                psDompet.executeUpdate();
+            }
+
+            // DETAIL TRANSAKSI
+            for(Object[] item : keranjangItem){
+
+                String queryDetail = "INSERT INTO Detail_Transaksi " +
+                        "VALUES (?, ?, ?, ?)";
+
+                PreparedStatement psDetail = conn.prepareStatement(queryDetail);
+
+                psDetail.setString(1, idTransaksi);
+
+                psDetail.setString(2, item[6].toString());
+
+                psDetail.setString(3, item[7].toString());
+
+                psDetail.setInt(4, (int)item[5]);
+
+                psDetail.executeUpdate();
+
+                // update stok
+                String queryUpdateStok =
+                        "UPDATE Varian_Produk " +
+                                "SET stok = stok - ? " +
+                                "WHERE id_varian = ? AND id_produk = ?";
+
+                PreparedStatement psStok = conn.prepareStatement(queryUpdateStok);
+
+                psStok.setInt(1, (int)item[5]);
+                psStok.setString(2, item[7].toString());
+                psStok.setString(3, item[6].toString());
+
+                psStok.executeUpdate();
+            }
+
+            // UPDATE VOUCHER
+            if(idVoucherDipakai != null){
+                String queryVoucher = "UPDATE Voucher " +
+                        "SET kuota = kuota - 1 " +
+                        "WHERE id_voucher = ?";
+
+                PreparedStatement psVoucher = conn.prepareStatement(queryVoucher);
+
+                psVoucher.setString(1, idVoucherDipakai);
+
+                psVoucher.executeUpdate();
+            }
+
+            // INSERT POIN HISTORY
+            int perubahanPoin = (int) (hargaAkhirFix / 100000);
+
+            if (perubahanPoin > 0) {
+                String queryPoin = "INSERT INTO Poin_History (id_history, tanggal, id_transaksi, perubahan_point, id_pelanggan) VALUES (?, ?, ?, ?, ?)";
+                PreparedStatement psPoin = conn.prepareStatement(queryPoin);
+
+                String idHistory = "HIS-" + now.toString().replace("-", "") + "-" + (int)(Math.random() * 900 + 100);
+
+                psPoin.setString(1, idHistory);
+                psPoin.setDate(2, Date.valueOf(now));
+                psPoin.setString(3, idTransaksi);
+                psPoin.setInt(4, perubahanPoin);
+                psPoin.setString(5, loggedinUserID);
+
+                psPoin.executeUpdate();
+                psPoin.close();
+            }
+
+            conn.commit();
+
+            JOptionPane.showMessageDialog(this,
+                    "Checkout berhasil!");
+
+            keranjangItem.clear();
+
+            refreshDataPengguna();
+
+        } catch (Exception e){
+            try{
+                conn.rollback();
+            } catch (Exception ex){
+                ex.printStackTrace();
+            }
+
+            JOptionPane.showMessageDialog(this, e.getMessage());
+        } finally {
+            try{
+                conn.setAutoCommit(true);
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+        }
     }
 
     private void refreshEkspedisi(){
@@ -320,14 +718,21 @@ public class App extends JFrame {
             ResultSet rs = ps.executeQuery();
 
             cbEkspedisi.removeAllItems();
+
+            dataPengantar.clear();
+
             while(rs.next()){
-                dataPengantar.add(new Object[]{rs.getString(1), rs.getString(2)});
+                dataPengantar.add(new Object[]{
+                        rs.getString(1),
+                        rs.getString(2)
+                });
                 cbEkspedisi.addItem(rs.getString(1));
             }
 
             taAlamat.setEditable(true);
             taAlamat.setText(akunAlamat.getText());
         } catch (Exception e){
+            e.printStackTrace();
             JOptionPane.showMessageDialog(this, e.getMessage());
         }
     }
@@ -432,6 +837,7 @@ public class App extends JFrame {
                 ResultSet rs = ps.executeQuery();
                 isiTabelKatalog(rs, query2);
             } catch (Exception e) {
+                e.printStackTrace();
                 JOptionPane.showMessageDialog(this, e.getMessage());
             }
         }
@@ -453,6 +859,7 @@ public class App extends JFrame {
                 ResultSet rs = ps.executeQuery();
                 isiTabelKatalog(rs, query2);
             } catch (Exception e) {
+                e.printStackTrace();
                 JOptionPane.showMessageDialog(this, e.getMessage());
             }
         }
@@ -472,6 +879,7 @@ public class App extends JFrame {
                 ResultSet rs = ps.executeQuery();
                 isiTabelKatalog(rs, query2);
             } catch (Exception e) {
+                e.printStackTrace();
                 JOptionPane.showMessageDialog(this, e.getMessage());
             }
         }
@@ -503,6 +911,7 @@ public class App extends JFrame {
                 isiTabelKatalog(rs, query2);
 
             } catch (Exception e){
+                e.printStackTrace();
                 JOptionPane.showMessageDialog(this, e.getMessage());
             }
         }
@@ -529,6 +938,7 @@ public class App extends JFrame {
                 isiTabelKatalog(rs, query2);
 
             } catch (Exception e){
+                e.printStackTrace();
                 JOptionPane.showMessageDialog(this, e.getMessage());
             }
         }
@@ -560,6 +970,7 @@ public class App extends JFrame {
                 isiTabelKatalog(rs, query2);
 
             } catch (Exception e){
+                e.printStackTrace();
                 JOptionPane.showMessageDialog(this, e.getMessage());
             }
         }
@@ -593,6 +1004,7 @@ public class App extends JFrame {
                 isiTabelKatalog(rs, query2);
 
             } catch (Exception e){
+                e.printStackTrace();
                 JOptionPane.showMessageDialog(this, e.getMessage());
             }
         }
@@ -662,6 +1074,7 @@ public class App extends JFrame {
             refreshDataPengguna();
             st.close();
         } catch (Exception ex) {
+            ex.printStackTrace();
             JOptionPane.showMessageDialog(this, ex.getMessage());
         }
     }
@@ -693,6 +1106,7 @@ public class App extends JFrame {
             st.close();
             rs.close();
         } catch (Exception e) {
+            e.printStackTrace();
             JOptionPane.showMessageDialog(this, e.getMessage());
         }
 
@@ -716,6 +1130,7 @@ public class App extends JFrame {
             ps.close(); ps2.close();
             rs.close(); rs2.close();
         } catch (Exception e) {
+            e.printStackTrace();
             JOptionPane.showMessageDialog(this, e.getMessage());
         }
 
@@ -756,6 +1171,7 @@ public class App extends JFrame {
             try{
                 refreshKatalog();
             } catch (Exception e) {
+                e.printStackTrace();
                 JOptionPane.showMessageDialog(this, e.getMessage());
             }
         }
@@ -767,6 +1183,8 @@ public class App extends JFrame {
             }
 
             loadDataPelanggan();
+
+            TierInfo.setText(akunBenefit.getText());
             refreshEkspedisi();
             refreshHarga();
         }
@@ -789,6 +1207,7 @@ public class App extends JFrame {
                     tb1.addRow(new Object[]{tang, rs.getString(2), String.valueOf(rs.getInt(3))});
                 }
             } catch (Exception e) {
+                e.printStackTrace();
                 JOptionPane.showMessageDialog(this, e.getMessage());
             }
         }
@@ -838,6 +1257,7 @@ public class App extends JFrame {
             ps.close();
 
         } catch (Exception e) {
+            e.printStackTrace();
             JOptionPane.showMessageDialog(this, e.getMessage());
         }
     }
@@ -872,6 +1292,7 @@ public class App extends JFrame {
 
             JOptionPane.showMessageDialog(this, "Akun berhasil ditambahkan!");
         } catch (Exception e){
+            e.printStackTrace();
             JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.WARNING_MESSAGE);
         }
     }
@@ -903,6 +1324,7 @@ public class App extends JFrame {
 
             st.close();
         } catch (Exception e){
+            e.printStackTrace();
             JOptionPane.showMessageDialog(this, e.getMessage());
             return;
         }
