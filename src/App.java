@@ -325,7 +325,7 @@ public class App extends JFrame {
         if(!tfVoucher.getText().trim().isEmpty()){
             try{
                 String query =
-                        "SELECT v.id_voucher,v.min_belanja,v.tgl_mulai,v.tgl_berlaku,v.kuota, " +
+                        "SELECT v.id_voucher,v.min_belanja,v.tgl_mulai,v.tgl_berakhir,v.kuota, " +
                                 "CASE " +
                                 "WHEN p.id_voucher IS NOT NULL THEN 'POTONGAN' " +
                                 "WHEN o.id_voucher IS NOT NULL THEN 'ONGKIR' " +
