@@ -1,35 +1,32 @@
 package src;
 
-import src.backend.ManageProduct.ManageKategori;
-import src.backend.ManageProduct.ManageMerk;
-import src.backend.ManageProduct.ManagePemasok;
-import src.backend.ManageProduct.ManageProduk;
-import src.backend.ManageProduct.ManageVarian;
-import src.backend.ManageProduct.ManagePelanggan;
-import src.database.*;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.*;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
+import java.util.ArrayList;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import src.FrontEnd.*;
 
 public class App extends JFrame {
     // Table
-    DefaultTableModel tb1;
+    DefaultTableModel tb1, tb2, tb3;
 
-    // DAO
-    private PelangganDAO pelangganDAO;
-    private PoinHistoryDAO poinHistoryDAO;
-    private TierLoyalitasDAO tierLoyalitasDAO;
+    // Sql
+    static String url = configLoginSql.url;
+    static String userName = configLoginSql.userName;
+    static String password = configLoginSql.password;
+    Connection conn = configLoginSql.setConnection();
 
     // User
-    String loggedinUserID;
-    String loggedinuserNama;
+    private String loggedinUserID;
+    private String loggedinuserNama;
 
-    // Komponen
+    // Data
+    ArrayList<Object[]> katalogItem = new ArrayList<>();
+    ArrayList<Object[]> keranjangItem = new ArrayList<>();
+    ArrayList<Object[]> dataPengantar = new ArrayList<>();
+
+    // Komponen GUI (semua komponen dari form)
     private JPanel MainPanel;
     private JPanel Front;
     private JPanel pageUtama;
@@ -65,651 +62,264 @@ public class App extends JFrame {
     private JLabel akunBenefit;
     private JLabel JudulAkun;
     private JTable table1;
-    private JTabbedPane tabbedPane2;
+    private JTable table2;
+    private JLabel welcome;
+    private JTextField filterTF;
+    private JComboBox<String> kategoriCB;
+    private JComboBox<String> merkCB;
+    private JLabel cariLB;
+    private JLabel kategoriLB;
+    private JLabel merkLB;
+    private JButton tambahKeKeranjangButton;
+    private JButton cariFilter;
+    private JSpinner jumlahSelected;
+    private JTable tableKeranjang;
+    private JLabel LBjumlah;
+    private JSpinner spinnerJumlah;
+    private JScrollPane JKeranjang;
+    private JButton deleteSelectedButton;
+    private JButton deleteAllButton;
+    private JTextArea taAlamat;
+    private JComboBox cbEkspedisi;
+    private JComboBox cbPengiriman;
+    private JButton checkoutButton;
+    private JComboBox cbMethod;
+    private JTextField tfVoucher;
+    private JLabel TFtotal;
+    private JLabel lbOngkir;
+    private JLabel lbMethod1;
+    private JLabel lbMethod2;
+    private JComboBox cbOpsi;
+    private JTextField tfOpsi;
+    private JLabel TierInfo;
+    private JPanel TransaksiHistory;
     private JTextArea ID;
 
-    // Komponen Backend
-    private ManageProduk manageProduk;
-    private ManageVarian manageVarian;
-    private ManageKategori manageKategori;
-    private ManageMerk manageMerk;
-    private ManagePemasok managePemasok;
-    private ManagePelanggan managePelanggan;
-
-    // Komponen GUI Produk
-    private JButton simpanButtonProduk;
-    private JButton updateButtonProduk;
-    private JTextField TF_IDProduk;
-    private JPanel IDProduk;
-    private JTextField TF_NamaProduk;
-    private JPanel NamaProduk;
-    private JTextField TF_DeskripsiProduk;
-    private JPanel DeskripsiProduk;
-    private JPanel MerkProduk;
-    private JComboBox<String> CMB_MerkProduk;
-    private JComboBox<String> CMB_KategoriProduk;
-    private JPanel KategoriProduk;
-    private JPanel PemasokProduk;
-    private JComboBox<String> CMB_PemasokProduk;
-    private JPanel ListMerkPanel;
-    private JTable TabelManageMerk;
-    private JTextField TF_IDMerk;
-    private JTextField TF_NamaMerk;
-    private JTextField TF_DeskripsiMerk;
-    private JPanel ListKategoriPanel;
-    private JTable TabelManageKategori;
-    private JTextField TF_IDVarian;
-    private JComboBox<String> CMB_IDProduk;
-    private JTextField TF_WarnaVarian;
-    private JTextField TF_StokVarian;
-    private JTextField TF_HargaVarian;
-    private JTable TabelManageProduk;
-    private JButton refreshDataButtonProduk;
-    private JButton deleteButtonProduk;
-    private JButton deleteButtonVarian;
-    private JButton updateButtonVarian;
-    private JButton refreshDataButtonVarian;
-    private JButton simpanButtonVarian;
-    private JTable TabelManageVarian;
-    private JButton simpanButtonKategori;
-    private JButton updateButtonKategori;
-    private JButton refreshDataButtonKategori;
-    private JButton deleteButtonKategori;
-    private JButton simpanButtonMerk;
-    private JButton updateButtonMerk;
-    private JButton refreshDataButtonMerk;
-    private JButton deleteButtonMerk;
-    private JTextField TF_BeratVarian;
-    private JTextField TF_IDKategori;
-    private JTextField TF_NamaKategori;
-    private JTextField TF_DeskripsiKategori;
-    private JTextField TF_IDPemasok;
-    private JTextField TF_NamaPemasok;
-    private JTextField TF_EmailPemasok;
-    private JTextField TF_TelpPemasok;
-    private JTextField TF_AlamatPemasok;
-    private JButton updateButtonPemasok;
-    private JTable TabelManagePemasok;
-    private JButton refreshDataButtonPemasok;
-    private JButton deleteButtonPemasok;
-    private JButton simpanButtonPemasok;
-    private JScrollPane JScrollPane;
-    private JTextField TF_UkuranVarian;
-    private JTextField TF_BarcodeVarian;
-
-    // Komponen GUI Pelanggan
-    private JTextField TF_IDPelanggan;
-    private JTextField TF_NamaPelanggan;
-    private JTextField TF_TelpPelanggan;
-    private JTextField TF_AlamatPelanggan;
-    private JButton simpanButtonPelanggan;
-    private JButton updateButtonPelanggan;
-    private JButton deleteButtonPelanggan;
-    private JButton refreshDataButtonPelanggan;
-    private JTable TabelManagePelanggan;
-
-    // Untuk mode create varian
-    private JTextField TF_IDProdukVarian;
-
-    // Card Layout
     private CardLayout c1;
 
-    // Constructor
-    public App(){
+    // Managers
+    private LoginManager loginManager;
+    private UserManager userManager;
+    private CatalogManager catalogManager;
+    private CartManager cartManager;
+    private CheckoutManager checkoutManager;
+
+    public App() {
         setContentPane(MainPanel);
         setSize(1280, 720);
         setTitle("Aplikasi Pengurus Database");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        // Inisialisasi DAO
-        pelangganDAO = new PelangganDAO();
-        poinHistoryDAO = new PoinHistoryDAO();
-        tierLoyalitasDAO = new TierLoyalitasDAO();
+        kategoriCB.setMaximumRowCount(5);
+        merkCB.setMaximumRowCount(5);
 
         c1 = (CardLayout) MainPanel.getLayout();
         c1.show(MainPanel, "pageUtama");
 
-        buttonBack.addActionListener((e) -> c1.show(MainPanel, "Back"));
-        buttonFront.addActionListener((e) -> loginFrontend());
-        registAkunButton.addActionListener((e) -> {c1.show(MainPanel, "regist");});
-        backButton.addActionListener((e) -> c1.show(MainPanel, "pageUtama"));
-        daftarButton.addActionListener((e) -> registPembeli());
-        gantiButton.addActionListener((e) -> gantiInformasiAkun(1));
-        gantiButton1.addActionListener((e) -> gantiInformasiAkun(2));
-        gantiButton2.addActionListener((e) -> gantiInformasiAkun(3));
-        gantiButton3.addActionListener((e) -> gantiInformasiAkun(4));
-        gantiButton4.addActionListener((e) -> gantiInformasiAkun(5));
+        // Set up tabel
+        setupTables();
 
-        tabbedPane1.addChangeListener((e) -> refreshDataPengguna());
+        // Inisialisasi Manager
+        loginManager = new LoginManager(this);
+        userManager = new UserManager(this, conn);
+        catalogManager = new CatalogManager(this, conn, katalogItem, tb2);
+        cartManager = new CartManager(this, keranjangItem, tb3);
+        checkoutManager = new CheckoutManager(this, conn, keranjangItem, dataPengantar);
 
-        tb1 = new DefaultTableModel();
-        tb1.addColumn("Tanggal");
-        tb1.addColumn("ID Transaksi");
-        tb1.addColumn("Perubahan Poin");
-
-        table1.setModel(tb1);
-
-        Runnable refreshAllTabs = () -> {
-            manageProduk.loadDataProduk(TabelManageProduk);
-            manageVarian.loadDataVarian(TabelManageVarian);
-            manageKategori.loadDataKategori(TabelManageKategori);
-            manageMerk.loadDataMerk(TabelManageMerk);
-            managePemasok.loadDataPemasok(TabelManagePemasok);
-            managePelanggan.loadDataPelanggan(TabelManagePelanggan);
-            manageVarian.refreshComboIDProduk();
-        };
-
-        manageProduk = new ManageProduk(DatabaseConnection.getConnection(), this, refreshAllTabs);
-        manageVarian = new ManageVarian(DatabaseConnection.getConnection(), refreshAllTabs);
-        manageKategori = new ManageKategori(DatabaseConnection.getConnection(), refreshAllTabs);
-        manageMerk = new ManageMerk(DatabaseConnection.getConnection(), refreshAllTabs);
-        managePemasok = new ManagePemasok(DatabaseConnection.getConnection(), refreshAllTabs);
-        managePelanggan = new ManagePelanggan(DatabaseConnection.getConnection(), refreshAllTabs);
-
-        manageProduk.loadDataProduk(TabelManageProduk);
-        manageVarian.loadDataVarian(TabelManageVarian);
-        manageKategori.loadDataKategori(TabelManageKategori);
-        manageMerk.loadDataMerk(TabelManageMerk);
-        managePemasok.loadDataPemasok(TabelManagePemasok);
-        managePelanggan.loadDataPelanggan(TabelManagePelanggan);
-
-        manageProduk.loadComboMerk(CMB_MerkProduk);
-        manageProduk.loadComboPemasok(CMB_PemasokProduk);
-        CMB_KategoriProduk.setVisible(false);
-
-        JButton btnPilihKategori = new JButton("Pilih Kategori");
-        JLabel lblKategoriTerpilih = new JLabel("- Belum pilih kategori -");
-        lblKategoriTerpilih.setForeground(Color.BLUE);
-        lblKategoriTerpilih.setFont(new Font("Arial", Font.PLAIN, 11));
-
-        Container parentKategori = CMB_KategoriProduk.getParent();
-        if (parentKategori instanceof JPanel) {
-            JPanel panelKategori = (JPanel) parentKategori;
-            panelKategori.remove(CMB_KategoriProduk);
-            panelKategori.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
-            panelKategori.add(btnPilihKategori);
-            panelKategori.add(lblKategoriTerpilih);
-            panelKategori.revalidate();
-            panelKategori.repaint();
-        }
-
-        manageProduk.setKategoriComponents(btnPilihKategori, lblKategoriTerpilih);
-
-        simpanButtonProduk.addActionListener(e -> {
-            if (TF_IDProduk.getText().trim().isEmpty() || TF_NamaProduk.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "ID Produk dan Nama Produk wajib diisi!");
-                return;
-            }
-            List<String> selectedKategori = manageProduk.getSelectedKategoriIds();
-            if (selectedKategori.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Pilih minimal satu kategori untuk produk!");
-                return;
-            }
-            manageProduk.insertProduk(TabelManageProduk,
-                    TF_IDProduk.getText(),
-                    "Tersedia",
-                    TF_NamaProduk.getText(),
-                    TF_DeskripsiProduk.getText(),
-                    CMB_MerkProduk.getSelectedItem().toString(),
-                    CMB_PemasokProduk.getSelectedItem().toString());
-            clearFormProduk();
+        // Listeners
+        buttonBack.addActionListener(e -> c1.show(MainPanel, "Back"));
+        buttonFront.addActionListener(e -> loginManager.loginFrontend(textFieldFront.getText()));
+        registAkunButton.addActionListener(e -> c1.show(MainPanel, "regist"));
+        backButton.addActionListener(e -> c1.show(MainPanel, "pageUtama"));
+        daftarButton.addActionListener(e -> loginManager.registPembeli(
+                IDRegist.getText(), namaRegist.getText(), emailRegist.getText(),
+                telpRegist.getText(), alamatRegist.getText()));
+        gantiButton.addActionListener(e -> userManager.gantiInformasiAkun(1, loggedinUserID));
+        gantiButton1.addActionListener(e -> userManager.gantiInformasiAkun(2, loggedinUserID));
+        gantiButton2.addActionListener(e -> userManager.gantiInformasiAkun(3, loggedinUserID));
+        gantiButton3.addActionListener(e -> userManager.gantiInformasiAkun(4, loggedinUserID));
+        gantiButton4.addActionListener(e -> userManager.gantiInformasiAkun(5, loggedinUserID));
+        cariFilter.addActionListener(e -> catalogManager.filterBarang(
+                filterTF.getText(), kategoriCB.getSelectedItem().toString(), merkCB.getSelectedItem().toString()));
+        tambahKeKeranjangButton.addActionListener(e -> catalogManager.tambahKeKeranjang(
+                (int) jumlahSelected.getValue(), table2.getSelectedRow(), keranjangItem));
+        deleteSelectedButton.addActionListener(e -> {
+            int result = JOptionPane.showConfirmDialog(this, "Apakah ingin lanjut?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
+            if (result == JOptionPane.NO_OPTION) return;
+            cartManager.deleteSelected(tableKeranjang.getSelectedRow());
         });
-
-        updateButtonProduk.addActionListener(e -> {
-            if (TF_IDProduk.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Pilih produk yang akan diupdate!");
-                return;
-            }
-            List<String> selectedKategori = manageProduk.getSelectedKategoriIds();
-            if (selectedKategori.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Pilih minimal satu kategori untuk produk!");
-                return;
-            }
-            manageProduk.updateProduk(TabelManageProduk,
-                    TF_IDProduk.getText(),
-                    TF_NamaProduk.getText(),
-                    TF_DeskripsiProduk.getText(),
-                    CMB_MerkProduk.getSelectedItem().toString(),
-                    CMB_PemasokProduk.getSelectedItem().toString());
-            clearFormProduk();
+        deleteAllButton.addActionListener(e -> {
+            int result = JOptionPane.showConfirmDialog(this, "Apakah ingin lanjut?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
+            if (result == JOptionPane.NO_OPTION) return;
+            cartManager.deleteAll();
         });
+        checkoutButton.addActionListener(e -> checkoutManager.checkoutRun());
 
-        deleteButtonProduk.addActionListener(e -> manageProduk.deleteProduk(TabelManageProduk));
-        refreshDataButtonProduk.addActionListener(e -> {
-            manageProduk.loadDataProduk(TabelManageProduk);
-            manageProduk.refreshCombos();
-            refreshAllTabs.run();
+        // Pengiriman dan pembayaran listeners
+        cbPengiriman.addItem("Delivery");
+        cbPengiriman.addItem("Collect");
+        cbPengiriman.addActionListener(e -> {
+            if ("Delivery".equals(cbPengiriman.getSelectedItem().toString())) {
+                checkoutManager.refreshEkspedisi(akunAlamat.getText());
+                checkoutManager.refreshHarga();
+            } else if ("Collect".equals(cbPengiriman.getSelectedItem().toString())) {
+                cbEkspedisi.removeAllItems();
+                taAlamat.setText("Ambil di Matahari terdekat!");
+                taAlamat.setEditable(false);
+                checkoutManager.refreshHarga();
+            }
         });
-
-        TabelManageProduk.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                int row = TabelManageProduk.getSelectedRow();
-                if (row >= 0) {
-                    TF_IDProduk.setText(TabelManageProduk.getValueAt(row, 0).toString());
-                    TF_NamaProduk.setText(TabelManageProduk.getValueAt(row, 1).toString());
-                    TF_DeskripsiProduk.setText(TabelManageProduk.getValueAt(row, 2).toString());
-                    CMB_MerkProduk.setSelectedItem(TabelManageProduk.getValueAt(row, 3).toString());
-                    CMB_PemasokProduk.setSelectedItem(TabelManageProduk.getValueAt(row, 5).toString());
-                    manageProduk.loadSelectedKategori(TabelManageProduk.getValueAt(row, 0).toString());
-                }
+        cbMethod.addItem("-"); cbMethod.addItem("Bank"); cbMethod.addItem("Kredit"); cbMethod.addItem("Dompet Digital");
+        cbMethod.addActionListener(e -> {
+            String selected = cbMethod.getSelectedItem().toString();
+            if ("-".equals(selected)) {
+                lbMethod1.setText("-"); lbMethod2.setText("2");
+                cbOpsi.removeAllItems();
+                tfOpsi.setText("");
+            } else if ("Bank".equals(selected)) {
+                lbMethod1.setText("Bank : ");
+                lbMethod2.setText("Nomor rek : ");
+                cbOpsi.removeAllItems();
+                String[] banks = {"BCA","Mandiri","BRI","BNI","CIMB Niaga","BSI","Permata Bank"};
+                for (String b : banks) cbOpsi.addItem(b);
+            } else if ("Kredit".equals(selected)) {
+                lbMethod1.setText("Bank : ");
+                lbMethod2.setText("Nomor Kredit : ");
+                cbOpsi.removeAllItems();
+                String[] banks = {"BCA","Mandiri","BRI","BNI","CIMB Niaga","BSI","Permata Bank"};
+                for (String b : banks) cbOpsi.addItem(b);
+            } else if ("Dompet Digital".equals(selected)) {
+                lbMethod1.setText("Dompet : ");
+                lbMethod2.setText("No. HP : ");
+                cbOpsi.removeAllItems();
+                String[] dompets = {"DANA","OVO","GoPay","ShopeePay","LinkAja"};
+                for (String d : dompets) cbOpsi.addItem(d);
             }
         });
 
-        TF_IDProdukVarian = new JTextField(15);
-        manageVarian.setCreateModeComponents(TF_IDProdukVarian);
-        manageVarian.setUpdateModeComponents(CMB_IDProduk);
+        // Tab listener
+        tabbedPane1.addChangeListener(e -> refreshDataPengguna());
 
-        simpanButtonVarian.addActionListener(e -> {
-            try {
-                manageVarian.insertVarian(TabelManageVarian,
-                        TF_IDProdukVarian.getText(),
-                        TF_IDVarian.getText(),
-                        TF_UkuranVarian.getText(),
-                        TF_WarnaVarian.getText(),
-                        Integer.parseInt(TF_BeratVarian.getText()),
-                        Integer.parseInt(TF_StokVarian.getText()),
-                        Integer.parseInt(TF_HargaVarian.getText()),
-                        TF_BarcodeVarian.getText());
-                clearFormVarian();
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Berat, Stok, dan Harga harus berupa angka!");
-            }
-        });
-
-        updateButtonVarian.addActionListener(e -> {
-            try {
-                manageVarian.updateVarian(TabelManageVarian,
-                        CMB_IDProduk.getSelectedItem().toString(),
-                        TF_IDVarian.getText(),
-                        TF_UkuranVarian.getText(),
-                        TF_WarnaVarian.getText(),
-                        Integer.parseInt(TF_BeratVarian.getText()),
-                        Integer.parseInt(TF_StokVarian.getText()),
-                        Integer.parseInt(TF_HargaVarian.getText()),
-                        TF_BarcodeVarian.getText());
-                clearFormVarian();
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Berat, Stok, dan Harga harus berupa angka!");
-            }
-        });
-
-        deleteButtonVarian.addActionListener(e -> manageVarian.deleteVarian(TabelManageVarian));
-        refreshDataButtonVarian.addActionListener(e -> {
-            manageVarian.loadDataVarian(TabelManageVarian);
-            refreshAllTabs.run();
-        });
-
-        TabelManageVarian.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                int row = TabelManageVarian.getSelectedRow();
-                if (row >= 0) {
-                    CMB_IDProduk.setSelectedItem(TabelManageVarian.getValueAt(row, 0).toString());
-                    TF_IDVarian.setText(TabelManageVarian.getValueAt(row, 1).toString());
-                    TF_UkuranVarian.setText(TabelManageVarian.getValueAt(row, 2).toString());
-                    TF_WarnaVarian.setText(TabelManageVarian.getValueAt(row, 3).toString());
-                    TF_BeratVarian.setText(TabelManageVarian.getValueAt(row, 4).toString());
-                    TF_StokVarian.setText(TabelManageVarian.getValueAt(row, 5).toString());
-                    TF_HargaVarian.setText(TabelManageVarian.getValueAt(row, 6).toString());
-                    TF_BarcodeVarian.setText(TabelManageVarian.getValueAt(row, 7).toString());
-                }
-            }
-        });
-
-        simpanButtonKategori.addActionListener(e -> {
-            if (TF_IDKategori.getText().trim().isEmpty() || TF_NamaKategori.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "ID Kategori dan Nama Kategori wajib diisi!");
-                return;
-            }
-            manageKategori.insertKategori(TabelManageKategori,
-                    TF_IDKategori.getText(),
-                    TF_NamaKategori.getText(),
-                    TF_DeskripsiKategori.getText());
-            clearFormKategori();
-        });
-
-        updateButtonKategori.addActionListener(e -> {
-            if (TF_IDKategori.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Pilih kategori yang akan diupdate!");
-                return;
-            }
-            manageKategori.updateKategori(TabelManageKategori,
-                    TF_IDKategori.getText(),
-                    TF_NamaKategori.getText(),
-                    TF_DeskripsiKategori.getText());
-            clearFormKategori();
-        });
-
-        deleteButtonKategori.addActionListener(e -> manageKategori.deleteKategori(TabelManageKategori));
-        refreshDataButtonKategori.addActionListener(e -> {
-            manageKategori.loadDataKategori(TabelManageKategori);
-            refreshAllTabs.run();
-        });
-
-        TabelManageKategori.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                int row = TabelManageKategori.getSelectedRow();
-                if (row >= 0) {
-                    TF_IDKategori.setText(TabelManageKategori.getValueAt(row, 0).toString());
-                    TF_NamaKategori.setText(TabelManageKategori.getValueAt(row, 1).toString());
-                    TF_DeskripsiKategori.setText(TabelManageKategori.getValueAt(row, 2).toString());
-                }
-            }
-        });
-
-        simpanButtonMerk.addActionListener(e -> {
-            if (TF_IDMerk.getText().trim().isEmpty() || TF_NamaMerk.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "ID Merk dan Nama Merk wajib diisi!");
-                return;
-            }
-            manageMerk.insertMerk(TabelManageMerk,
-                    TF_IDMerk.getText(),
-                    TF_NamaMerk.getText(),
-                    TF_DeskripsiMerk.getText());
-            clearFormMerk();
-        });
-
-        updateButtonMerk.addActionListener(e -> {
-            if (TF_IDMerk.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Pilih merk yang akan diupdate!");
-                return;
-            }
-            manageMerk.updateMerk(TabelManageMerk,
-                    TF_IDMerk.getText(),
-                    TF_NamaMerk.getText(),
-                    TF_DeskripsiMerk.getText());
-            clearFormMerk();
-        });
-
-        deleteButtonMerk.addActionListener(e -> manageMerk.deleteMerk(TabelManageMerk));
-        refreshDataButtonMerk.addActionListener(e -> {
-            manageMerk.loadDataMerk(TabelManageMerk);
-            refreshAllTabs.run();
-        });
-
-        TabelManageMerk.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                int row = TabelManageMerk.getSelectedRow();
-                if (row >= 0) {
-                    TF_IDMerk.setText(TabelManageMerk.getValueAt(row, 0).toString());
-                    TF_NamaMerk.setText(TabelManageMerk.getValueAt(row, 1).toString());
-                    TF_DeskripsiMerk.setText(TabelManageMerk.getValueAt(row, 2).toString());
-                }
-            }
-        });
-
-        simpanButtonPemasok.addActionListener(e -> {
-            if (TF_IDPemasok.getText().trim().isEmpty() || TF_NamaPemasok.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "ID Pemasok dan Nama Pemasok wajib diisi!");
-                return;
-            }
-            managePemasok.insertPemasok(TabelManagePemasok,
-                    TF_IDPemasok.getText(),
-                    TF_NamaPemasok.getText(),
-                    TF_EmailPemasok.getText(),
-                    TF_TelpPemasok.getText(),
-                    TF_AlamatPemasok.getText());
-            clearFormPemasok();
-        });
-
-        updateButtonPemasok.addActionListener(e -> {
-            if (TF_IDPemasok.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Pilih pemasok yang akan diupdate!");
-                return;
-            }
-            managePemasok.updatePemasok(TabelManagePemasok,
-                    TF_IDPemasok.getText(),
-                    TF_NamaPemasok.getText(),
-                    TF_EmailPemasok.getText(),
-                    TF_TelpPemasok.getText(),
-                    TF_AlamatPemasok.getText());
-            clearFormPemasok();
-        });
-
-        deleteButtonPemasok.addActionListener(e -> managePemasok.deletePemasok(TabelManagePemasok));
-        refreshDataButtonPemasok.addActionListener(e -> {
-            managePemasok.loadDataPemasok(TabelManagePemasok);
-            refreshAllTabs.run();
-        });
-
-        TabelManagePemasok.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                int row = TabelManagePemasok.getSelectedRow();
-                if (row >= 0) {
-                    TF_IDPemasok.setText(TabelManagePemasok.getValueAt(row, 0).toString());
-                    TF_NamaPemasok.setText(TabelManagePemasok.getValueAt(row, 1).toString());
-                    TF_EmailPemasok.setText(TabelManagePemasok.getValueAt(row, 2).toString());
-                    TF_TelpPemasok.setText(TabelManagePemasok.getValueAt(row, 3).toString());
-                    TF_AlamatPemasok.setText(TabelManagePemasok.getValueAt(row, 4).toString());
-                }
-            }
-        });
-
-        simpanButtonPelanggan.addActionListener(e -> {
-            if (TF_IDPelanggan.getText().trim().isEmpty() || TF_NamaPelanggan.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "ID dan Nama Pelanggan wajib diisi!");
-                return;
-            }
-            managePelanggan.insertPelanggan(TabelManagePelanggan,
-                    TF_IDPelanggan.getText(),
-                    TF_NamaPelanggan.getText(),
-                    TF_TelpPelanggan.getText(),
-                    TF_AlamatPelanggan.getText());
-            clearFormPelanggan();
-        });
-
-        updateButtonPelanggan.addActionListener(e -> {
-            if (TF_IDPelanggan.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Pilih pelanggan yang akan diupdate!");
-                return;
-            }
-            managePelanggan.updatePelanggan(TabelManagePelanggan,
-                    TF_IDPelanggan.getText(),
-                    TF_NamaPelanggan.getText(),
-                    TF_TelpPelanggan.getText(),
-                    TF_AlamatPelanggan.getText());
-            clearFormPelanggan();
-        });
-
-        deleteButtonPelanggan.addActionListener(e -> {
-            managePelanggan.deletePelanggan(TabelManagePelanggan);
-            clearFormPelanggan();
-        });
-
-        refreshDataButtonPelanggan.addActionListener(e -> managePelanggan.loadDataPelanggan(TabelManagePelanggan));
-
-        TabelManagePelanggan.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                int row = TabelManagePelanggan.getSelectedRow();
-                if (row >= 0) {
-                    TF_IDPelanggan.setText(TabelManagePelanggan.getValueAt(row, 0).toString());
-                    TF_NamaPelanggan.setText(TabelManagePelanggan.getValueAt(row, 1).toString());
-                    TF_TelpPelanggan.setText(TabelManagePelanggan.getValueAt(row, 3).toString());
-                    TF_AlamatPelanggan.setText(TabelManagePelanggan.getValueAt(row, 4).toString());
-                }
+        // Special tab untuk transaksi (index 2)
+        tabbedPane1.addChangeListener(e -> {
+            if (tabbedPane1.getSelectedIndex() == 2) {
+                TransactionView tv = new TransactionView(this);
+                JPanel panel = tv.buildTransactionsPanel("ALL", "DESC");
+                tabbedPane1.setComponentAt(2, panel);
             }
         });
 
         setVisible(true);
     }
 
-    private void clearFormProduk(){
-        TF_IDProduk.setText("");
-        TF_NamaProduk.setText("");
-        TF_DeskripsiProduk.setText("");
-        if(CMB_MerkProduk.getItemCount() > 0) CMB_MerkProduk.setSelectedIndex(0);
-        if(CMB_KategoriProduk.getItemCount() > 0) CMB_KategoriProduk.setSelectedIndex(0);
-        if(CMB_PemasokProduk.getItemCount() > 0) CMB_PemasokProduk.setSelectedIndex(0);
-    }
+    private void setupTables() {
+        tb1 = new DefaultTableModel() { public boolean isCellEditable(int r, int c) { return false; } };
+        tb1.addColumn("Tanggal"); tb1.addColumn("ID Transaksi"); tb1.addColumn("Perubahan Poin");
+        table1.setModel(tb1);
 
-    private void clearFormVarian(){
-        TF_IDProdukVarian.setText("");
-        TF_IDVarian.setText("");
-        TF_UkuranVarian.setText("");
-        TF_WarnaVarian.setText("");
-        TF_BeratVarian.setText("");
-        TF_StokVarian.setText("");
-        TF_HargaVarian.setText("");
-        TF_BarcodeVarian.setText("");
-        if(CMB_IDProduk.getItemCount() > 0) CMB_IDProduk.setSelectedIndex(0);
-    }
+        tb2 = new DefaultTableModel() { public boolean isCellEditable(int r, int c) { return false; } };
+        tb2.addColumn("Kategori"); tb2.addColumn("Nama"); tb2.addColumn("Merk");
+        tb2.addColumn("Ukuran"); tb2.addColumn("Warna"); tb2.addColumn("Stok"); tb2.addColumn("Harga");
+        table2.setModel(tb2);
 
-    private void clearFormKategori(){
-        TF_IDKategori.setText("");
-        TF_NamaKategori.setText("");
-        TF_DeskripsiKategori.setText("");
-    }
+        tb3 = new DefaultTableModel() { public boolean isCellEditable(int r, int c) { return false; } };
+        tb3.addColumn("Nama"); tb3.addColumn("Merk"); tb3.addColumn("Ukuran");
+        tb3.addColumn("Warna"); tb3.addColumn("Harga"); tb3.addColumn("Jumlah");
+        tableKeranjang.setModel(tb3);
 
-    private void clearFormMerk(){
-        TF_IDMerk.setText("");
-        TF_NamaMerk.setText("");
-        TF_DeskripsiMerk.setText("");
-    }
-
-    private void clearFormPemasok(){
-        TF_IDPemasok.setText("");
-        TF_NamaPemasok.setText("");
-        TF_EmailPemasok.setText("");
-        TF_TelpPemasok.setText("");
-        TF_AlamatPemasok.setText("");
-    }
-
-    private void clearFormPelanggan(){
-        TF_IDPelanggan.setText("");
-        TF_NamaPelanggan.setText("");
-        TF_TelpPelanggan.setText("");
-        TF_AlamatPelanggan.setText("");
-    }
-
-    // ==================== METHOD MENGGUNAKAN DAO ====================
-
-    private void gantiInformasiAkun(int e){
-        String informasi = JOptionPane.showInputDialog(this, "Masukan Data Pengganti : ");
-        if(informasi == null || informasi.isEmpty()) return;
-
-        boolean success = false;
-        switch (e){
-            case 1:
-                if (pelangganDAO.getById(informasi) != null) {
-                    JOptionPane.showMessageDialog(this, "ID sudah digunakan oleh pelanggan lain!");
-                    return;
+        table2.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tableKeranjang.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tableKeranjang.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                int row = tableKeranjang.getSelectedRow();
+                if (row != -1) {
+                    Object[] select = keranjangItem.get(row);
+                    int max = (int) select[8];
+                    SpinnerNumberModel model2 = new SpinnerNumberModel(1, 1, max, 1);
+                    spinnerJumlah.setModel(model2);
+                    spinnerJumlah.setValue((int) select[5]);
                 }
-                success = pelangganDAO.updateId(loggedinUserID, informasi);
-                if (success) loggedinUserID = informasi;
-                break;
-            case 2:
-                success = pelangganDAO.updateNama(loggedinUserID, informasi);
-                if (success) loggedinuserNama = informasi;
-                break;
-            case 3:
-                success = pelangganDAO.updateEmail(loggedinUserID, informasi);
-                break;
-            case 4:
-                success = pelangganDAO.updateNoTelp(loggedinUserID, informasi);
-                break;
-            case 5:
-                success = pelangganDAO.updateAlamat(loggedinUserID, informasi);
-                break;
-            default:
-                JOptionPane.showMessageDialog(this, "Something went wrong");
-                return;
-        }
+            }
+        });
+        spinnerJumlah.addChangeListener(e -> {
+            int row = tableKeranjang.getSelectedRow();
+            if (row != -1) cartManager.ubahSelectedKeranjang(row, (int) spinnerJumlah.getValue());
+        });
 
-        if (success) {
-            JOptionPane.showMessageDialog(this, "Data berhasil diupdate!");
-            refreshDataPengguna();
-        } else {
-            JOptionPane.showMessageDialog(this, "Gagal mengupdate data!", "Error", JOptionPane.ERROR_MESSAGE);
-        }
+        SpinnerNumberModel model = new SpinnerNumberModel(0, 0, 999, 1);
+        jumlahSelected.setModel(model);
     }
 
-    private void refreshDataPengguna(){
+    // ===================== GETTERS & SETTERS UNTUK MANAGER =====================
+    public void setLoggedinUserID(String id) { this.loggedinUserID = id; }
+    public void setLoggedinuserNama(String nama) { this.loggedinuserNama = nama; }
+    public String getLoggedinUserID() { return loggedinUserID; }
+    public String getLoggedinuserNama() { return loggedinuserNama; }
+    public void setWelcomeText(String text) { welcome.setText(text); }
+    public void showFrontPanel() { c1.show(MainPanel, "Front"); }
+    public JTabbedPane getTabbedPane() { return tabbedPane1; }
+    public Connection getConnection() { return conn; }
+
+    public void setAkunID(String text) { akunID.setText(text); }
+    public void setAkunNama(String text) { akunNama.setText(text); }
+    public void setAkunEmail(String text) { akunEmail.setText(text); }
+    public void setAkunTelp(String text) { akunTelp.setText(text); }
+    public void setAkunCreated(String text) { akunCreated.setText(text); }
+    public void setAkunAlamat(String text) { akunAlamat.setText(text); }
+    public void setAkunTier(String text) { akunTier.setText(text); }
+    public void setAkunBenefit(String text) { akunBenefit.setText(text); }
+
+    public void setTFtotal(String text) { TFtotal.setText(text); }
+    public void setLbOngkir(String text) { lbOngkir.setText(text); }
+    public String getCbPengirimanSelectedItem() { return (String) cbPengiriman.getSelectedItem(); }
+    public String getCbMethodSelectedItem() { return (String) cbMethod.getSelectedItem(); }
+    public String getCbOpsiSelectedItem() { return (String) cbOpsi.getSelectedItem(); }
+    public String getCbEkspedisiSelectedItem() { return (String) cbEkspedisi.getSelectedItem(); }
+    public String getTfOpsiText() { return tfOpsi.getText(); }
+    public String getTfVoucherText() { return tfVoucher.getText(); }
+    public String getTaAlamatText() { return taAlamat.getText(); }
+    public String getLbMethod1Text() { return lbMethod1.getText(); }
+    public void setTaAlamatEditable(boolean editable) { taAlamat.setEditable(editable); }
+    public void setTaAlamatText(String text) { taAlamat.setText(text); }
+    public void clearCbEkspedisi() { cbEkspedisi.removeAllItems(); }
+    public void addCbEkspedisiItem(String item) { cbEkspedisi.addItem(item); }
+
+    public JComboBox<String> getKategoriCB() { return kategoriCB; }
+    public JComboBox<String> getMerkCB() { return merkCB; }
+
+    // ===================== METHOD REFRESH YANG DIPANGGIL DARI MANAGER =====================
+    public void refreshDataPengguna() {
         int index = tabbedPane1.getSelectedIndex();
-        if(index == 3){
-            List<Map<String, Object>> historyList = poinHistoryDAO.getByPelangganId(loggedinUserID);
-            tb1.setRowCount(0);
-            for (Map<String, Object> history : historyList) {
-                tb1.addRow(new Object[]{
-                        history.get("tanggal"),
-                        history.get("id_transaksi"),
-                        history.get("perubahan_point")
-                });
-            }
-        }
-
-        if(index == 4){
-            Map<String, Object> pelanggan = pelangganDAO.getById(loggedinUserID);
-            if (pelanggan != null) {
-                akunID.setText((String) pelanggan.get("id_pelanggan"));
-                akunNama.setText((String) pelanggan.get("nama"));
-                akunEmail.setText((String) pelanggan.get("email"));
-                akunTelp.setText((String) pelanggan.get("no_telp"));
-                akunCreated.setText(pelanggan.get("tgl_daftar") != null ? pelanggan.get("tgl_daftar").toString() : "");
-                akunAlamat.setText((String) pelanggan.get("alamat_utama"));
-
-                String idTier = (String) pelanggan.get("id_tier");
-                Map<String, Object> tier = tierLoyalitasDAO.getById(idTier);
-                if (tier != null) {
-                    akunTier.setText(idTier + " - " + tier.get("nama_tier"));
-                    akunBenefit.setText((String) tier.get("benefit"));
+        if (index == 0) {
+            catalogManager.refreshKatalog(kategoriCB, merkCB);
+        } else if (index == 1) {
+            tb3.setRowCount(0);
+            for (Object[] o : keranjangItem) tb3.addRow(o);
+            userManager.loadDataPelanggan(loggedinUserID);
+            TierInfo.setText(akunBenefit.getText());
+            checkoutManager.refreshEkspedisi(akunAlamat.getText());
+            checkoutManager.refreshHarga();
+        } else if (index == 3) {
+            try {
+                String query = "SELECT tanggal, id_transaksi, perubahan_point FROM Poin_History WHERE id_pelanggan = ? ORDER BY tanggal DESC";
+                PreparedStatement ps = conn.prepareStatement(query);
+                ps.setString(1, loggedinUserID);
+                ResultSet rs = ps.executeQuery();
+                tb1.setRowCount(0);
+                while (rs.next()) {
+                    tb1.addRow(new Object[]{rs.getDate(1).toString(), rs.getString(2), rs.getInt(3)});
                 }
-            }
+            } catch (Exception e) { e.printStackTrace(); JOptionPane.showMessageDialog(this, e.getMessage()); }
+        } else if (index == 4) {
+            userManager.loadDataPelanggan(loggedinUserID);
         }
     }
 
-    private void registPembeli(){
-        String id = IDRegist.getText().trim();
-        String nama = namaRegist.getText().trim();
-        String email = emailRegist.getText().trim();
-        String telp = telpRegist.getText().trim();
-        String alamat = alamatRegist.getText().trim();
-
-        if(id.isEmpty() || nama.isEmpty() || email.isEmpty() || telp.isEmpty() || alamat.isEmpty()){
-            JOptionPane.showMessageDialog(this, "Data tidak boleh kosong");
-            return;
-        }
-
-        if (pelangganDAO.getById(id) != null) {
-            JOptionPane.showMessageDialog(this, "ID Pelanggan sudah digunakan!", "Error", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        if (pelangganDAO.insert(id, nama, email, telp, alamat)) {
-            JOptionPane.showMessageDialog(this, "Akun berhasil ditambahkan!");
-            IDRegist.setText("");
-            namaRegist.setText("");
-            emailRegist.setText("");
-            telpRegist.setText("");
-            alamatRegist.setText("");
-            c1.show(MainPanel, "pageUtama");
-        } else {
-            JOptionPane.showMessageDialog(this, "Gagal menambahkan akun!", "Error", JOptionPane.WARNING_MESSAGE);
-        }
+    public void refreshHarga() {
+        checkoutManager.refreshHarga();
     }
 
-    private void loginFrontend(){
-        String data = textFieldFront.getText().trim();
-        if(data.isEmpty()){
-            JOptionPane.showMessageDialog(this, "ID Kosong");
-            return;
-        }
-
-        Map<String, Object> pelanggan = pelangganDAO.getById(data);
-        if(pelanggan == null){
-            JOptionPane.showMessageDialog(this, "Data Pelanggan tidak Ditemukan!", "Not Found", JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
-
-        loggedinUserID = (String) pelanggan.get("id_pelanggan");
-        loggedinuserNama = (String) pelanggan.get("nama");
-        c1.show(MainPanel, "Front");
-    }
-
-    public static void main(String[] args){
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public static void main(String[] args) {
         new App();
     }
 }
