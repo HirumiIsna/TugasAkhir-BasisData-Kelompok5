@@ -5,6 +5,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.*;
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 
@@ -22,9 +23,14 @@ public class App extends JFrame {
     String loggedinUserID;
     String loggedinuserNama;
 
+    // Nyimpan subtotal
+    double hargaSub = 0;
+    double ongkir = 0;
+
     // Arraylist Katalog
     ArrayList<Object[]> katalogItem = new ArrayList<>();
     ArrayList<Object[]> keranjangItem = new ArrayList<>();
+    ArrayList<Object[]> dataPengantar = new ArrayList<>();
 
     // Komponen
     private JPanel MainPanel;
@@ -79,15 +85,18 @@ public class App extends JFrame {
     private JScrollPane JKeranjang;
     private JButton deleteSelectedButton;
     private JButton deleteAllButton;
-    private JTextArea textArea1;
-    private JComboBox comboBox1;
-    private JComboBox comboBox2;
+    private JTextArea taAlamat;
+    private JComboBox cbEkspedisi;
+    private JComboBox cbPengiriman;
     private JButton checkoutButton;
-    private JComboBox comboBox3;
-    private JTextField textField2;
-    private JTextArea textArea2;
-    private JTextArea textArea3;
-    private JTextArea textArea4;
+    private JComboBox cbMethod;
+    private JTextField tfVoucher;
+    private JLabel TFtotal;
+    private JLabel lbOngkir;
+    private JLabel lbMethod1;
+    private JLabel lbMethod2;
+    private JComboBox cbOpsi;
+    private JTextField tfOpsi;
     private JTextArea ID;
 
     // Card Layout
@@ -169,6 +178,7 @@ public class App extends JFrame {
 
             keranjangItem.remove(index);
             refreshDataPengguna();
+            refreshHarga();
         });
         deleteAllButton.addActionListener((e) -> {
             int result = JOptionPane.showConfirmDialog(this, "Apakah ingin lanjut?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
@@ -179,10 +189,147 @@ public class App extends JFrame {
 
             keranjangItem.clear();
             refreshDataPengguna();
+            refreshHarga();
         });
 
         table1.setModel(tb1);
+
+        cbPengiriman.addItem("Delivery"); cbPengiriman.addItem("Collect");
+
+        cbPengiriman.addActionListener((e) -> {
+            if(cbPengiriman.getSelectedItem().toString().equals("Delivery")){
+                refreshEkspedisi();
+                refreshHarga();
+                return;
+            }
+
+            if(cbPengiriman.getSelectedItem().toString().equals("Collect")){
+                cbEkspedisi.removeAllItems();
+                taAlamat.setText("Ambil di Matahari terdekat!");
+                taAlamat.setEditable(false);
+                refreshHarga();
+            }
+        });
+        cbMethod.addItem("-"); cbMethod.addItem("Bank"); cbMethod.addItem("Kredit"); cbMethod.addItem("Dompet Digital");
+        cbMethod.addActionListener((e) -> {
+            String selected = cbMethod.getSelectedItem().toString();
+            if(selected.equals("-")){
+                lbMethod1.setText("-"); lbMethod2.setText("2");
+                cbOpsi.removeAllItems();
+                tfOpsi.setText("");
+                return;
+            }
+
+            if(selected.equals("Bank")){
+                lbMethod1.setText("Bank : ");
+                lbMethod2.setText("Nomor rek : ");
+
+                cbOpsi.removeAllItems();
+                cbOpsi.addItem("BCA");cbOpsi.addItem("Mandiri");cbOpsi.addItem("BRI");
+                cbOpsi.addItem("BNI");cbOpsi.addItem("CIMB Niaga");cbOpsi.addItem("BSI");
+                cbOpsi.addItem("Permata Bank");
+                return;
+            }
+
+            if(selected.equals("Kredit")){
+                lbMethod1.setText("Bank : ");
+                lbMethod2.setText("Nomor Kredit : ");
+
+                cbOpsi.removeAllItems();
+                cbOpsi.addItem("BCA");cbOpsi.addItem("Mandiri");
+                cbOpsi.addItem("BRI");cbOpsi.addItem("BNI");
+                cbOpsi.addItem("CIMB Niaga");cbOpsi.addItem("BSI");
+                cbOpsi.addItem("Permata Bank");
+                return;
+            }
+
+            if(selected.equals("Dompet Digital")){
+                lbMethod1.setText("Dompet : ");
+                lbMethod2.setText("No. HP : ");
+
+                cbOpsi.removeAllItems();
+                cbOpsi.addItem("DANA");cbOpsi.addItem("OVO");
+                cbOpsi.addItem("GoPay");cbOpsi.addItem("ShopeePay");
+                cbOpsi.addItem("LinkAja");
+                return;
+            }
+        });
+
+        checkoutButton.addActionListener((e) -> checkoutRun());
+
+
         setVisible(true);
+    }
+
+    private void checkoutRun(){
+        if(keranjangItem.isEmpty()){
+            JOptionPane.showMessageDialog(this, "Keranjang Kosong");
+            return;
+        }
+
+        if(cbMethod.getSelectedItem().toString().equals("-")){
+            JOptionPane.showMessageDialog(this, "Pilih Opsi Pembayaran!");
+            return;
+        }
+
+        if(tfOpsi.getText().isEmpty()){
+            String[] text = lbMethod1.getText().split(" ");
+            JOptionPane.showMessageDialog(this, "Isi Informasi " + text[0]);
+            return;
+        }
+
+        // Cek voucher
+        if(!tfVoucher.getText().trim().isEmpty()){
+            try{
+                String query =  "SELECT v.id_voucher,v.kode,v.min_belanja,v.tgl_mulai,v.tgl_berlaku,v.kuota,\n" +
+                                "    CASE\n" +
+                                "        WHEN p.id_voucher IS NOT NULL THEN 'POTONGAN'\n" +
+                                "        WHEN o.id_voucher IS NOT NULL THEN 'ONGKIR'\n" +
+                                "        WHEN d.id_voucher IS NOT NULL THEN 'DISKON'\n" +
+                                "        ELSE 'TIDAK VALID'\n" +
+                                "    END AS tipe_voucher\n" +
+                                "FROM Voucher v\n" +
+                                "LEFT JOIN Potongan p ON v.id_voucher = p.id_voucher\n" +
+                                "LEFT JOIN Ongkir o ON v.id_voucher = o.id_voucher\n" +
+                                "LEFT JOIN Diskon d ON v.id_voucher = d.id_voucher\n" +
+                                "WHERE v.kode = ?;";
+
+                PreparedStatement ps = conn.prepareStatement(query);
+                ps.setString(1, tfVoucher.getText().trim());
+
+                ResultSet rs = ps.executeQuery();
+
+                if(!rs.next()) {
+                    JOptionPane.showMessageDialog(this, "Invalid Kode Voucher!");
+                    return;
+                }
+
+                // Cek stok voucher
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, e.getMessage());
+                return;
+            }
+        }
+
+    }
+
+    private void refreshEkspedisi(){
+        try{
+            String query = "SELECT nama, id_ekspedisi FROM Ekspedisi ORDER BY nama;";
+            PreparedStatement ps = conn.prepareStatement(query);
+            ResultSet rs = ps.executeQuery();
+
+            cbEkspedisi.removeAllItems();
+            while(rs.next()){
+                dataPengantar.add(new Object[]{rs.getString(1), rs.getString(2)});
+                cbEkspedisi.addItem(rs.getString(1));
+            }
+
+            taAlamat.setEditable(true);
+            taAlamat.setText(akunAlamat.getText());
+        } catch (Exception e){
+            JOptionPane.showMessageDialog(this, e.getMessage());
+        }
     }
 
     private void ubahSelectedKeranjang(){
@@ -194,6 +341,7 @@ public class App extends JFrame {
         data[5] = (int) spinnerJumlah.getValue();
 
         tb3.setValueAt(data[5], index, 5);
+        refreshHarga();;
     }
 
     private void synchronSpinner(ListSelectionEvent e){
@@ -255,7 +403,7 @@ public class App extends JFrame {
                 return;
             }
 
-            keranjangItem.add(new Object[]{isi[1], isi[2], isi[3], isi[4], isi[6], jumlah, isi[7], isi[8], isi[5]});
+            keranjangItem.add(new Object[]{isi[1], isi[2], isi[3], isi[4], isi[6], jumlah, isi[7], isi[8], isi[5], isi[9]});
         }
 
         JOptionPane.showMessageDialog(this, "Pesanan berhasil ditambah!", "Success!", JOptionPane.INFORMATION_MESSAGE);
@@ -271,7 +419,7 @@ public class App extends JFrame {
 
         // Possibility 1: Cari
         if(!filterTF.getText().isEmpty() && kategoriCB.getSelectedItem().toString().equals("-") && merkCB.getSelectedItem().toString().equals("-")){
-            String query = "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga, p.id_produk, vp.id_varian FROM Varian_Produk vp\n" +
+            String query = "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga, p.id_produk, vp.id_varian, vp.berat FROM Varian_Produk vp\n" +
                     "JOIN Produk p ON vp.id_produk = p.id_produk\n" +
                     "JOIN Merk m ON p.id_merk = m.id_merk\n" +
                     "WHERE p.status = 'Tersedia' AND p.nama LIKE ?\n" +
@@ -290,7 +438,7 @@ public class App extends JFrame {
 
         // Possibility 2: Kategori
         if(filterTF.getText().isEmpty() && !kategoriCB.getSelectedItem().toString().equals("-") && merkCB.getSelectedItem().toString().equals("-")){
-            String query = "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga, p.id_produk, vp.id_varian FROM Varian_Produk vp\n" +
+            String query = "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga, p.id_produk, vp.id_varian, vp.berat FROM Varian_Produk vp\n" +
                     "JOIN Produk p ON vp.id_produk = p.id_produk\n" +
                     "JOIN Merk m ON p.id_merk = m.id_merk\n" +
                     "WHERE p.status = 'Tersedia' AND ? IN (SELECT bb.nama_kategori FROM Produk_Mempunyai_Kategori aa JOIN Kategori bb ON aa.id_kategori = bb.id_kategori WHERE p.id_produk = aa.id_produk)\n" +
@@ -311,7 +459,7 @@ public class App extends JFrame {
 
         // Possibility 3: Merk
         if(filterTF.getText().isEmpty() && kategoriCB.getSelectedItem().toString().equals("-") && !merkCB.getSelectedItem().toString().equals("-")){
-            String query = "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga FROM Varian_Produk, p.id_produk, vp.id_varian vp\n" +
+            String query = "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga, p.id_produk, vp.id_varian, vp.berat FROM Varian_Produk vp\n" +
                     "JOIN Produk p ON vp.id_produk = p.id_produk\n" +
                     "JOIN Merk m ON p.id_merk = m.id_merk\n" +
                     "WHERE p.status = 'Tersedia' AND m.nama = ?\n" +
@@ -331,7 +479,7 @@ public class App extends JFrame {
         // Possibility 4 : Kategori + Merk
         if(filterTF.getText().isEmpty() && !kategoriCB.getSelectedItem().toString().equals("-") && !merkCB.getSelectedItem().toString().equals("-")){
             String query =
-                    "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga, p.id_produk, vp.id_varian " +
+                    "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga, p.id_produk, vp.id_varian, vp.berat " +
                             "FROM Varian_Produk vp " +
                             "JOIN Produk p ON vp.id_produk = p.id_produk " +
                             "JOIN Merk m ON p.id_merk = m.id_merk " +
@@ -362,7 +510,7 @@ public class App extends JFrame {
         // Possibility 5: Cari + Merk
         if(!filterTF.getText().isEmpty() && kategoriCB.getSelectedItem().toString().equals("-") && !merkCB.getSelectedItem().toString().equals("-")){
             String query =
-                    "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga, p.id_produk, vp.id_varian " +
+                    "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga, p.id_produk, vp.id_varian, vp.berat " +
                             "FROM Varian_Produk vp " +
                             "JOIN Produk p ON vp.id_produk = p.id_produk " +
                             "JOIN Merk m ON p.id_merk = m.id_merk " +
@@ -388,7 +536,7 @@ public class App extends JFrame {
         // Possibility 6: Cari + Kategori
         if(!filterTF.getText().isEmpty() && !kategoriCB.getSelectedItem().toString().equals("-") && merkCB.getSelectedItem().toString().equals("-")){
             String query =
-                    "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga, p.id_produk, vp.id_varian " +
+                    "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga, p.id_produk, vp.id_varian, vp.berat " +
                             "FROM Varian_Produk vp " +
                             "JOIN Produk p ON vp.id_produk = p.id_produk " +
                             "JOIN Merk m ON p.id_merk = m.id_merk " +
@@ -419,7 +567,7 @@ public class App extends JFrame {
         // Possibility 7: Cari + Kategori + Merk
         if(!filterTF.getText().isEmpty() && !kategoriCB.getSelectedItem().toString().equals("-") && !merkCB.getSelectedItem().toString().equals("-")){
             String query =
-                    "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga, p.id_produk, vp.id_varian " +
+                    "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga, p.id_produk, vp.id_varian, vp.berat " +
                             "FROM Varian_Produk vp " +
                             "JOIN Produk p ON vp.id_produk = p.id_produk " +
                             "JOIN Merk m ON p.id_merk = m.id_merk " +
@@ -447,6 +595,29 @@ public class App extends JFrame {
             } catch (Exception e){
                 JOptionPane.showMessageDialog(this, e.getMessage());
             }
+        }
+    }
+
+    private void refreshHarga(){
+        hargaSub = 0;
+        ongkir = 0;
+        double berat = 0;
+        for(Object[] x : keranjangItem){
+            hargaSub += ((int)x[4] * (int)x[5]);
+            berat += (int)x[9] * (int)x[5];
+        }
+
+        ongkir = 10000 * (berat/1000);
+
+        DecimalFormat df = new DecimalFormat("#,###");
+
+        TFtotal.setText("RP. " + df.format(hargaSub));
+
+        if(cbPengiriman.getSelectedItem().toString().equals("Collect")){
+            lbOngkir.setText("RP. 0");
+            ongkir = 0;
+        } else {
+            lbOngkir.setText("RP. " + df.format(ongkir));
         }
     }
 
@@ -496,7 +667,7 @@ public class App extends JFrame {
     }
 
     private void refreshKatalog(){
-        String query = "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga, p.id_produk, vp.id_varian FROM Varian_Produk vp\n" +
+        String query = "SELECT vp.id_produk, p.nama, m.nama, vp.ukuran, vp.warna, vp.stok, vp.harga, p.id_produk, vp.id_varian, vp.berat FROM Varian_Produk vp\n" +
                 "JOIN Produk p ON vp.id_produk = p.id_produk\n" +
                 "JOIN Merk m ON p.id_merk = m.id_merk\n" +
                 "WHERE p.status = 'Tersedia'\n" +
@@ -571,7 +742,7 @@ public class App extends JFrame {
             tb2.addRow(new Object[]{kategoriFull, rs.getString(2), rs.getString(3), rs.getString(4),
                     rs.getString(5), rs.getInt(6), rs.getInt(7)});
             katalogItem.add(new Object[]{kategoriFull, rs.getString(2), rs.getString(3), rs.getString(4),
-                    rs.getString(5), rs.getInt(6), rs.getInt(7), rs.getString(8), rs.getString(9)});
+                    rs.getString(5), rs.getInt(6), rs.getInt(7), rs.getString(8), rs.getString(9), rs.getInt(10)});
 
             ps2.close();;
             rs2.close();
@@ -594,6 +765,10 @@ public class App extends JFrame {
             for(int i=0; i<keranjangItem.size(); i++){
                 tb3.addRow(keranjangItem.get(i));
             }
+
+            loadDataPelanggan();
+            refreshEkspedisi();
+            refreshHarga();
         }
 
         if(index == 3){
@@ -619,47 +794,51 @@ public class App extends JFrame {
         }
 
         if(index == 4){
-            try{
-                String query = "SELECT * FROM Pelanggan WHERE id_pelanggan = ?";
+            loadDataPelanggan();
+        }
+    }
 
-                PreparedStatement ps = conn.prepareStatement(query);
-                ps.setString(1, loggedinUserID);
+    private void loadDataPelanggan(){
+        try{
+            String query = "SELECT * FROM Pelanggan WHERE id_pelanggan = ?";
 
-                ResultSet rs = ps.executeQuery();
-                while(rs.next()){
-                    akunID.setText(rs.getString(1));
-                    akunNama.setText(rs.getString(2));
-                    akunEmail.setText(rs.getString(3));
-                    akunTelp.setText(rs.getString(4));
+            PreparedStatement ps = conn.prepareStatement(query);
+            ps.setString(1, loggedinUserID);
 
-                    Date tanggal = rs.getDate(5);
-                    akunCreated.setText(tanggal.toString());
+            ResultSet rs = ps.executeQuery();
+            while(rs.next()){
+                akunID.setText(rs.getString(1));
+                akunNama.setText(rs.getString(2));
+                akunEmail.setText(rs.getString(3));
+                akunTelp.setText(rs.getString(4));
 
-                    akunAlamat.setText(rs.getString(6));
+                Date tanggal = rs.getDate(5);
+                akunCreated.setText(tanggal.toString());
 
-                    String query2 = "SELECT nama_tier, benefit FROM Tier_Loyalitas WHERE id_tier = ?";
+                akunAlamat.setText(rs.getString(6));
 
-                    PreparedStatement ps2 = conn.prepareStatement(query2);
-                    ps2.setString(1, rs.getString(7));
+                String query2 = "SELECT nama_tier, benefit FROM Tier_Loyalitas WHERE id_tier = ?";
 
-                    ResultSet rs2 = ps2.executeQuery();
+                PreparedStatement ps2 = conn.prepareStatement(query2);
+                ps2.setString(1, rs.getString(7));
 
-                    while(rs2.next()){
-                        String info = rs.getString(7) + " - " + rs2.getString(1);
-                        akunTier.setText(info);
-                        akunBenefit.setText(rs2.getString(2));
-                    }
+                ResultSet rs2 = ps2.executeQuery();
 
-                    rs2.close();
-                    ps2.close();
+                while(rs2.next()){
+                    String info = rs.getString(7) + " - " + rs2.getString(1);
+                    akunTier.setText(info);
+                    akunBenefit.setText(rs2.getString(2));
                 }
 
-                rs.close();
-                ps.close();
-
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, e.getMessage());
+                rs2.close();
+                ps2.close();
             }
+
+            rs.close();
+            ps.close();
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, e.getMessage());
         }
     }
 
