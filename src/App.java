@@ -5,6 +5,7 @@ import src.backend.ManageProduct.ManageMerk;
 import src.backend.ManageProduct.ManagePemasok;
 import src.backend.ManageProduct.ManageProduk;
 import src.backend.ManageProduct.ManageVarian;
+import src.backend.ManageProduct.ManagePelanggan;
 import src.database.*;
 
 import javax.swing.*;
@@ -67,12 +68,13 @@ public class App extends JFrame {
     private JTabbedPane tabbedPane2;
     private JTextArea ID;
 
-    // Komponen Backend (Hilmi)
+    // Komponen Backend
     private ManageProduk manageProduk;
     private ManageVarian manageVarian;
     private ManageKategori manageKategori;
     private ManageMerk manageMerk;
     private ManagePemasok managePemasok;
+    private ManagePelanggan managePelanggan;
 
     // Komponen GUI Produk
     private JButton simpanButtonProduk;
@@ -135,7 +137,18 @@ public class App extends JFrame {
     private JTextField TF_UkuranVarian;
     private JTextField TF_BarcodeVarian;
 
-    // Untuk mode create varian (input ID produk manual)
+    // Komponen GUI Pelanggan
+    private JTextField TF_IDPelanggan;
+    private JTextField TF_NamaPelanggan;
+    private JTextField TF_TelpPelanggan;
+    private JTextField TF_AlamatPelanggan;
+    private JButton simpanButtonPelanggan;
+    private JButton updateButtonPelanggan;
+    private JButton deleteButtonPelanggan;
+    private JButton refreshDataButtonPelanggan;
+    private JTable TabelManagePelanggan;
+
+    // Untuk mode create varian
     private JTextField TF_IDProdukVarian;
 
     // Card Layout
@@ -176,16 +189,13 @@ public class App extends JFrame {
 
         table1.setModel(tb1);
 
-        // ==================== INISIALISASI DENGAN REFRESH CALLBACK ====================
-
-        // Refresh callback untuk semua tab
         Runnable refreshAllTabs = () -> {
             manageProduk.loadDataProduk(TabelManageProduk);
             manageVarian.loadDataVarian(TabelManageVarian);
             manageKategori.loadDataKategori(TabelManageKategori);
             manageMerk.loadDataMerk(TabelManageMerk);
             managePemasok.loadDataPemasok(TabelManagePemasok);
-            // Refresh combo box di varian update mode
+            managePelanggan.loadDataPelanggan(TabelManagePelanggan);
             manageVarian.refreshComboIDProduk();
         };
 
@@ -194,35 +204,28 @@ public class App extends JFrame {
         manageKategori = new ManageKategori(DatabaseConnection.getConnection(), refreshAllTabs);
         manageMerk = new ManageMerk(DatabaseConnection.getConnection(), refreshAllTabs);
         managePemasok = new ManagePemasok(DatabaseConnection.getConnection(), refreshAllTabs);
+        managePelanggan = new ManagePelanggan(DatabaseConnection.getConnection(), refreshAllTabs);
 
-        // ==================== LOAD DATA AWAL ====================
         manageProduk.loadDataProduk(TabelManageProduk);
         manageVarian.loadDataVarian(TabelManageVarian);
         manageKategori.loadDataKategori(TabelManageKategori);
         manageMerk.loadDataMerk(TabelManageMerk);
         managePemasok.loadDataPemasok(TabelManagePemasok);
+        managePelanggan.loadDataPelanggan(TabelManagePelanggan);
 
-        // ==================== MANAGE PRODUK ====================
-// Load combo merk dan pemasok
         manageProduk.loadComboMerk(CMB_MerkProduk);
         manageProduk.loadComboPemasok(CMB_PemasokProduk);
-
-// Sembunyikan combo kategori asli, ganti dengan tombol pilih kategori
         CMB_KategoriProduk.setVisible(false);
 
-// Buat tombol pilih kategori
         JButton btnPilihKategori = new JButton("Pilih Kategori");
         JLabel lblKategoriTerpilih = new JLabel("- Belum pilih kategori -");
         lblKategoriTerpilih.setForeground(Color.BLUE);
         lblKategoriTerpilih.setFont(new Font("Arial", Font.PLAIN, 11));
 
-// Cari parent panel dari CMB_KategoriProduk dan tambahkan komponen
         Container parentKategori = CMB_KategoriProduk.getParent();
         if (parentKategori instanceof JPanel) {
             JPanel panelKategori = (JPanel) parentKategori;
-            // Hapus combo asli
             panelKategori.remove(CMB_KategoriProduk);
-            // Tambahkan komponen baru
             panelKategori.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
             panelKategori.add(btnPilihKategori);
             panelKategori.add(lblKategoriTerpilih);
@@ -230,7 +233,6 @@ public class App extends JFrame {
             panelKategori.repaint();
         }
 
-// Simpan referensi ke manageProduk untuk akses kategori
         manageProduk.setKategoriComponents(btnPilihKategori, lblKategoriTerpilih);
 
         simpanButtonProduk.addActionListener(e -> {
@@ -238,13 +240,11 @@ public class App extends JFrame {
                 JOptionPane.showMessageDialog(this, "ID Produk dan Nama Produk wajib diisi!");
                 return;
             }
-
             List<String> selectedKategori = manageProduk.getSelectedKategoriIds();
             if (selectedKategori.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Pilih minimal satu kategori untuk produk!");
                 return;
             }
-
             manageProduk.insertProduk(TabelManageProduk,
                     TF_IDProduk.getText(),
                     "Tersedia",
@@ -260,13 +260,11 @@ public class App extends JFrame {
                 JOptionPane.showMessageDialog(this, "Pilih produk yang akan diupdate!");
                 return;
             }
-
             List<String> selectedKategori = manageProduk.getSelectedKategoriIds();
             if (selectedKategori.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Pilih minimal satu kategori untuk produk!");
                 return;
             }
-
             manageProduk.updateProduk(TabelManageProduk,
                     TF_IDProduk.getText(),
                     TF_NamaProduk.getText(),
@@ -277,7 +275,6 @@ public class App extends JFrame {
         });
 
         deleteButtonProduk.addActionListener(e -> manageProduk.deleteProduk(TabelManageProduk));
-
         refreshDataButtonProduk.addActionListener(e -> {
             manageProduk.loadDataProduk(TabelManageProduk);
             manageProduk.refreshCombos();
@@ -293,18 +290,13 @@ public class App extends JFrame {
                     TF_DeskripsiProduk.setText(TabelManageProduk.getValueAt(row, 2).toString());
                     CMB_MerkProduk.setSelectedItem(TabelManageProduk.getValueAt(row, 3).toString());
                     CMB_PemasokProduk.setSelectedItem(TabelManageProduk.getValueAt(row, 5).toString());
-                    // Load kategori yang sudah dipilih untuk produk ini
                     manageProduk.loadSelectedKategori(TabelManageProduk.getValueAt(row, 0).toString());
                 }
             }
         });
 
-        // ==================== MANAGE VARIAN ====================
-        // Untuk mode CREATE (input ID produk manual)
         TF_IDProdukVarian = new JTextField(15);
         manageVarian.setCreateModeComponents(TF_IDProdukVarian);
-
-        // Untuk mode UPDATE (dropdown ID produk)
         manageVarian.setUpdateModeComponents(CMB_IDProduk);
 
         simpanButtonVarian.addActionListener(e -> {
@@ -363,7 +355,6 @@ public class App extends JFrame {
             }
         });
 
-        // ==================== MANAGE KATEGORI ====================
         simpanButtonKategori.addActionListener(e -> {
             if (TF_IDKategori.getText().trim().isEmpty() || TF_NamaKategori.getText().trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "ID Kategori dan Nama Kategori wajib diisi!");
@@ -405,7 +396,6 @@ public class App extends JFrame {
             }
         });
 
-        // ==================== MANAGE MERK ====================
         simpanButtonMerk.addActionListener(e -> {
             if (TF_IDMerk.getText().trim().isEmpty() || TF_NamaMerk.getText().trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "ID Merk dan Nama Merk wajib diisi!");
@@ -447,7 +437,6 @@ public class App extends JFrame {
             }
         });
 
-        // ==================== MANAGE PEMASOK ====================
         simpanButtonPemasok.addActionListener(e -> {
             if (TF_IDPemasok.getText().trim().isEmpty() || TF_NamaPemasok.getText().trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "ID Pemasok dan Nama Pemasok wajib diisi!");
@@ -495,24 +484,61 @@ public class App extends JFrame {
             }
         });
 
+        simpanButtonPelanggan.addActionListener(e -> {
+            if (TF_IDPelanggan.getText().trim().isEmpty() || TF_NamaPelanggan.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "ID dan Nama Pelanggan wajib diisi!");
+                return;
+            }
+            managePelanggan.insertPelanggan(TabelManagePelanggan,
+                    TF_IDPelanggan.getText(),
+                    TF_NamaPelanggan.getText(),
+                    TF_TelpPelanggan.getText(),
+                    TF_AlamatPelanggan.getText());
+            clearFormPelanggan();
+        });
+
+        updateButtonPelanggan.addActionListener(e -> {
+            if (TF_IDPelanggan.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Pilih pelanggan yang akan diupdate!");
+                return;
+            }
+            managePelanggan.updatePelanggan(TabelManagePelanggan,
+                    TF_IDPelanggan.getText(),
+                    TF_NamaPelanggan.getText(),
+                    TF_TelpPelanggan.getText(),
+                    TF_AlamatPelanggan.getText());
+            clearFormPelanggan();
+        });
+
+        deleteButtonPelanggan.addActionListener(e -> {
+            managePelanggan.deletePelanggan(TabelManagePelanggan);
+            clearFormPelanggan();
+        });
+
+        refreshDataButtonPelanggan.addActionListener(e -> managePelanggan.loadDataPelanggan(TabelManagePelanggan));
+
+        TabelManagePelanggan.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                int row = TabelManagePelanggan.getSelectedRow();
+                if (row >= 0) {
+                    TF_IDPelanggan.setText(TabelManagePelanggan.getValueAt(row, 0).toString());
+                    TF_NamaPelanggan.setText(TabelManagePelanggan.getValueAt(row, 1).toString());
+                    TF_TelpPelanggan.setText(TabelManagePelanggan.getValueAt(row, 3).toString());
+                    TF_AlamatPelanggan.setText(TabelManagePelanggan.getValueAt(row, 4).toString());
+                }
+            }
+        });
+
         setVisible(true);
     }
-
-    // ==================== METHOD CLEAR FORM ====================
 
     private void clearFormProduk(){
         TF_IDProduk.setText("");
         TF_NamaProduk.setText("");
         TF_DeskripsiProduk.setText("");
-        if(CMB_MerkProduk.getItemCount() > 0){
-            CMB_MerkProduk.setSelectedIndex(0);
-        }
-        if(CMB_KategoriProduk.getItemCount() > 0){
-            CMB_KategoriProduk.setSelectedIndex(0);
-        }
-        if(CMB_PemasokProduk.getItemCount() > 0){
-            CMB_PemasokProduk.setSelectedIndex(0);
-        }
+        if(CMB_MerkProduk.getItemCount() > 0) CMB_MerkProduk.setSelectedIndex(0);
+        if(CMB_KategoriProduk.getItemCount() > 0) CMB_KategoriProduk.setSelectedIndex(0);
+        if(CMB_PemasokProduk.getItemCount() > 0) CMB_PemasokProduk.setSelectedIndex(0);
     }
 
     private void clearFormVarian(){
@@ -524,9 +550,7 @@ public class App extends JFrame {
         TF_StokVarian.setText("");
         TF_HargaVarian.setText("");
         TF_BarcodeVarian.setText("");
-        if(CMB_IDProduk.getItemCount() > 0){
-            CMB_IDProduk.setSelectedIndex(0);
-        }
+        if(CMB_IDProduk.getItemCount() > 0) CMB_IDProduk.setSelectedIndex(0);
     }
 
     private void clearFormKategori(){
@@ -549,16 +573,20 @@ public class App extends JFrame {
         TF_AlamatPemasok.setText("");
     }
 
+    private void clearFormPelanggan(){
+        TF_IDPelanggan.setText("");
+        TF_NamaPelanggan.setText("");
+        TF_TelpPelanggan.setText("");
+        TF_AlamatPelanggan.setText("");
+    }
+
     // ==================== METHOD MENGGUNAKAN DAO ====================
 
     private void gantiInformasiAkun(int e){
         String informasi = JOptionPane.showInputDialog(this, "Masukan Data Pengganti : ");
-
-        if(informasi == null) return;
-        if(informasi.isEmpty()) return;
+        if(informasi == null || informasi.isEmpty()) return;
 
         boolean success = false;
-
         switch (e){
             case 1:
                 if (pelangganDAO.getById(informasi) != null) {
@@ -596,7 +624,6 @@ public class App extends JFrame {
 
     private void refreshDataPengguna(){
         int index = tabbedPane1.getSelectedIndex();
-
         if(index == 3){
             List<Map<String, Object>> historyList = poinHistoryDAO.getByPelangganId(loggedinUserID);
             tb1.setRowCount(0);
@@ -648,13 +675,11 @@ public class App extends JFrame {
 
         if (pelangganDAO.insert(id, nama, email, telp, alamat)) {
             JOptionPane.showMessageDialog(this, "Akun berhasil ditambahkan!");
-
             IDRegist.setText("");
             namaRegist.setText("");
             emailRegist.setText("");
             telpRegist.setText("");
             alamatRegist.setText("");
-
             c1.show(MainPanel, "pageUtama");
         } else {
             JOptionPane.showMessageDialog(this, "Gagal menambahkan akun!", "Error", JOptionPane.WARNING_MESSAGE);
@@ -676,7 +701,6 @@ public class App extends JFrame {
 
         loggedinUserID = (String) pelanggan.get("id_pelanggan");
         loggedinuserNama = (String) pelanggan.get("nama");
-
         c1.show(MainPanel, "Front");
     }
 
