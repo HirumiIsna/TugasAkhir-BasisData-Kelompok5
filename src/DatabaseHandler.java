@@ -203,157 +203,179 @@ public class DatabaseHandler {
         return kreditList.toArray(new String[0]);
     }
 
-    public void createTransaction(String loggedinUserID, List<App.CartItem> cartItems, String jenisPengiriman, String ekspedisi, String alamat, String voucher, String metodePembayaran, Map<String, String> paymentDetails) throws SQLException {
-        String newTransactionId = null;
-        String newShipmentId = null;
-        String newPaymentId = null;
-        int originalIsolationLevel = conn.getTransactionIsolation();
+    // public void createTransaction(String loggedinUserID, List<App.CartItem> cartItems, String jenisPengiriman, String ekspedisi, String alamat, String voucher, String metodePembayaran, Map<String, String> paymentDetails) throws SQLException {
+    //     String newTransactionId = null;
+    //     String newShipmentId = null;
+    //     String newPaymentId = null;
+    //     int originalIsolationLevel = conn.getTransactionIsolation();
 
-        try {
-            conn.setAutoCommit(false);
-            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+    //     try {
+    //         conn.setAutoCommit(false);
+    //         conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
 
-            // 1. Generate new Transaksi ID
-            try (Statement stmt = conn.createStatement();
-                 ResultSet rs = stmt.executeQuery("SELECT MAX(CAST(SUBSTRING(id_transaksi, 2) AS UNSIGNED)) FROM transaksi")) {
-                int maxId = 0;
-                if (rs.next()) {
-                    maxId = rs.getInt(1);
-                }
-                newTransactionId = "T" + String.format("%02d", maxId + 1);
+    //         // 1. Generate new Transaksi ID
+    //         try (Statement stmt = conn.createStatement();
+    //              ResultSet rs = stmt.executeQuery("SELECT MAX(CAST(SUBSTRING(id_transaksi, 2) AS UNSIGNED)) FROM transaksi")) {
+    //             int maxId = 0;
+    //             if (rs.next()) {
+    //                 maxId = rs.getInt(1);
+    //             }
+    //             newTransactionId = "T" + String.format("%02d", maxId + 1);
+    //         }
+
+    //         // 2. Handle Pengiriman
+    //         if (jenisPengiriman.equals("Delivery")) {
+    //             try (Statement stmt = conn.createStatement();
+    //                  ResultSet rs = stmt.executeQuery("SELECT MAX(CAST(SUBSTRING(id_pengiriman, 2) AS UNSIGNED)) FROM pengiriman")) {
+    //                 int maxId = 0;
+    //                 if (rs.next()) {
+    //                     maxId = rs.getInt(1);
+    //                 }
+    //                 newShipmentId = "N" + String.format("%02d", maxId + 1);
+    //             }
+
+    //             String insertPengirimanQuery = "INSERT INTO pengiriman (id_pengiriman, id_ekspedisi, alamat_pengiriman, status, tanggal_pengiriman) VALUES (?, ?, ?, 'Diproses', CURDATE())";
+    //             try (PreparedStatement ps = conn.prepareStatement(insertPengirimanQuery)) {
+    //                 ps.setString(1, newShipmentId);
+    //                 ps.setString(2, ekspedisi); // Assuming ekspedisi is the ID
+    //                 ps.setString(3, alamat);
+    //                 ps.executeUpdate();
+    //             }
+    //         }
+
+    //         // 3. Generate new Pembayaran ID
+    //         try (Statement stmt = conn.createStatement();
+    //              ResultSet rs = stmt.executeQuery("SELECT MAX(CAST(SUBSTRING(id_pembayaran, 2) AS UNSIGNED)) FROM pembayaran")) {
+    //             int maxId = 0;
+    //             if (rs.next()) {
+    //                 maxId = rs.getInt(1);
+    //             }
+    //             newPaymentId = "P" + String.format("%02d", maxId + 1);
+    //         }
+
+    //         // 4. Insert into Pembayaran
+    //         String insertPembayaranQuery = "INSERT INTO pembayaran (id_pembayaran, metode_pembayaran, tanggal_pembayaran, status) VALUES (?, ?, CURDATE(), 'Berhasil')";
+    //         try (PreparedStatement ps = conn.prepareStatement(insertPembayaranQuery)) {
+    //             ps.setString(1, newPaymentId);
+    //             ps.setString(2, metodePembayaran);
+    //             ps.executeUpdate();
+    //         }
+
+    //         // 5. Insert into specific payment method table
+    //         switch (metodePembayaran) {
+    //             case "Transfer Bank":
+    //                 String insertTransferQuery = "INSERT INTO transfer_bank (id_pembayaran, nama_bank, no_rekening) VALUES (?, ?, ?)";
+    //                 try (PreparedStatement ps = conn.prepareStatement(insertTransferQuery)) {
+    //                     ps.setString(1, newPaymentId);
+    //                     ps.setString(2, paymentDetails.get("nama_bank"));
+    //                     ps.setString(3, paymentDetails.get("no_rek"));
+    //                     ps.executeUpdate();
+    //                 }
+    //                 break;
+    //             case "E-Money":
+    //                 String insertEmoneyQuery = "INSERT INTO dompet_digital (id_pembayaran, jenis_dompet, no_telp) VALUES (?, ?, ?)";
+    //                 try (PreparedStatement ps = conn.prepareStatement(insertEmoneyQuery)) {
+    //                     ps.setString(1, newPaymentId);
+    //                     ps.setString(2, paymentDetails.get("jenis_dompet"));
+    //                     ps.setString(3, paymentDetails.get("no_telp"));
+    //                     ps.executeUpdate();
+    //                 }
+    //                 break;
+    //             case "Kredit":
+    //                 String insertKreditQuery = "INSERT INTO kredit (id_pembayaran, nama_bank, masa_berlaku, no_kartu) VALUES (?, ?, ?, ?)";
+    //                 try (PreparedStatement ps = conn.prepareStatement(insertKreditQuery)) {
+    //                     ps.setString(1, newPaymentId);
+    //                     ps.setString(2, paymentDetails.get("nama_bank"));
+    //                     ps.setDate(3, java.sql.Date.valueOf(paymentDetails.get("masa_berlaku")));
+    //                     ps.setString(4, paymentDetails.get("no_kartu"));
+    //                     ps.executeUpdate();
+    //                 }
+    //                 break;
+    //         }
+
+    //         // 6. Insert into Transaksi
+    //         String insertTransaksiQuery = "INSERT INTO transaksi (id_transaksi, id_pelanggan, id_pengiriman, id_pembayaran, id_voucher, tanggal_transaksi) VALUES (?, ?, ?, ?, ?, CURDATE())";
+    //         try (PreparedStatement ps = conn.prepareStatement(insertTransaksiQuery)) {
+    //             ps.setString(1, newTransactionId);
+    //             ps.setString(2, loggedinUserID);
+    //             ps.setString(3, newShipmentId); // Can be null
+    //             ps.setString(4, newPaymentId);
+    //             ps.setString(5, voucher); // Assuming voucher is the ID
+    //             ps.executeUpdate();
+    //         }
+
+    //         // 7. Insert into transaksi_memuat_varian and update stock
+    //         String insertJunctionQuery = "INSERT INTO transaksi_memuat_varian (id_transaksi, id_varian, jumlah) VALUES (?, ?, ?)";
+    //         String updateStockQuery = "UPDATE varian_produk SET stok = stok - ? WHERE id_varian = ?";
+    //         try (PreparedStatement psJunction = conn.prepareStatement(insertJunctionQuery);
+    //              PreparedStatement psUpdateStock = conn.prepareStatement(updateStockQuery)) {
+
+    //             for (App.CartItem item : cartItems) {
+    //                 psJunction.setString(1, newTransactionId);
+    //                 psJunction.setString(2, item.getIdVarian());
+    //                 psJunction.setInt(3, item.getAmount());
+    //                 psJunction.addBatch();
+
+    //                 psUpdateStock.setInt(1, item.getAmount());
+    //                 psUpdateStock.setString(2, item.getIdVarian());
+    //                 psUpdateStock.addBatch();
+    //             }
+    //             psJunction.executeBatch();
+    //             psUpdateStock.executeBatch();
+    //         }
+
+    //         conn.commit();
+
+    //     } catch (SQLException e) {
+    //         if (conn != null) {
+    //             try {
+    //                 conn.rollback();
+    //             } catch (SQLException ex) {
+    //                 ex.printStackTrace();
+    //             }
+    //         }
+    //         throw e;
+    //     } finally {
+    //         if (conn != null) {
+    //             try {
+    //                 conn.setAutoCommit(true);
+    //                 conn.setTransactionIsolation(originalIsolationLevel); // Reset to default
+    //             } catch (SQLException e) {
+    //                 e.printStackTrace();
+    //             }
+    //         }
+    //     }
+    // }
+
+    public List<String[]> getTransactions(String userID) {
+        List<String[]> transactions = new ArrayList<>();
+        String query = "SELECT id_transaksi, id_pelanggan, id_pengiriman, id_voucher, tanggal, total_harga, total_berat, potongan_harga, status FROM transaksi WHERE id_pelanggan = ?";
+        
+        System.out.println("Executing query: " + query + " with userID: " + userID);
+
+        try (PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setString(1, userID);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                transactions.add(new String[]{
+                    rs.getString(1), // id_transaksi
+                    rs.getString(2), // id_pelanggan
+                    rs.getString(3), // id_pengiriman
+                    rs.getString(4), // id_voucher
+                    rs.getString(5), // tanggal_transaksi
+                    rs.getString(6), // total_harga
+                    rs.getString(7), // total_berat
+                    rs.getString(8), // potongan_harga
+                    rs.getString(9)  // status
+                });
             }
-
-            // 2. Handle Pengiriman
-            if (jenisPengiriman.equals("Delivery")) {
-                try (Statement stmt = conn.createStatement();
-                     ResultSet rs = stmt.executeQuery("SELECT MAX(CAST(SUBSTRING(id_pengiriman, 2) AS UNSIGNED)) FROM pengiriman")) {
-                    int maxId = 0;
-                    if (rs.next()) {
-                        maxId = rs.getInt(1);
-                    }
-                    newShipmentId = "N" + String.format("%02d", maxId + 1);
-                }
-
-                String insertPengirimanQuery = "INSERT INTO pengiriman (id_pengiriman, id_ekspedisi, alamat_pengiriman, status, tanggal_pengiriman) VALUES (?, ?, ?, 'Diproses', CURDATE())";
-                try (PreparedStatement ps = conn.prepareStatement(insertPengirimanQuery)) {
-                    ps.setString(1, newShipmentId);
-                    ps.setString(2, ekspedisi); // Assuming ekspedisi is the ID
-                    ps.setString(3, alamat);
-                    ps.executeUpdate();
-                }
+            if (transactions.isEmpty()) {
+                System.out.println("No transactions found for user: " + userID);
             }
-
-            // 3. Generate new Pembayaran ID
-            try (Statement stmt = conn.createStatement();
-                 ResultSet rs = stmt.executeQuery("SELECT MAX(CAST(SUBSTRING(id_pembayaran, 2) AS UNSIGNED)) FROM pembayaran")) {
-                int maxId = 0;
-                if (rs.next()) {
-                    maxId = rs.getInt(1);
-                }
-                newPaymentId = "P" + String.format("%02d", maxId + 1);
-            }
-
-            // 4. Insert into Pembayaran
-            String insertPembayaranQuery = "INSERT INTO pembayaran (id_pembayaran, metode_pembayaran, tanggal_pembayaran, status) VALUES (?, ?, CURDATE(), 'Berhasil')";
-            try (PreparedStatement ps = conn.prepareStatement(insertPembayaranQuery)) {
-                ps.setString(1, newPaymentId);
-                ps.setString(2, metodePembayaran);
-                ps.executeUpdate();
-            }
-
-            // 5. Insert into specific payment method table
-            switch (metodePembayaran) {
-                case "Transfer Bank":
-                    String insertTransferQuery = "INSERT INTO transfer_bank (id_pembayaran, nama_bank, no_rekening) VALUES (?, ?, ?)";
-                    try (PreparedStatement ps = conn.prepareStatement(insertTransferQuery)) {
-                        ps.setString(1, newPaymentId);
-                        ps.setString(2, paymentDetails.get("nama_bank"));
-                        ps.setString(3, paymentDetails.get("no_rek"));
-                        ps.executeUpdate();
-                    }
-                    break;
-                case "E-Money":
-                    String insertEmoneyQuery = "INSERT INTO dompet_digital (id_pembayaran, jenis_dompet, no_telp) VALUES (?, ?, ?)";
-                    try (PreparedStatement ps = conn.prepareStatement(insertEmoneyQuery)) {
-                        ps.setString(1, newPaymentId);
-                        ps.setString(2, paymentDetails.get("jenis_dompet"));
-                        ps.setString(3, paymentDetails.get("no_telp"));
-                        ps.executeUpdate();
-                    }
-                    break;
-                case "Kredit":
-                    String insertKreditQuery = "INSERT INTO kredit (id_pembayaran, nama_bank, masa_berlaku, no_kartu) VALUES (?, ?, ?, ?)";
-                    try (PreparedStatement ps = conn.prepareStatement(insertKreditQuery)) {
-                        ps.setString(1, newPaymentId);
-                        ps.setString(2, paymentDetails.get("nama_bank"));
-                        ps.setDate(3, java.sql.Date.valueOf(paymentDetails.get("masa_berlaku")));
-                        ps.setString(4, paymentDetails.get("no_kartu"));
-                        ps.executeUpdate();
-                    }
-                    break;
-            }
-
-            // 6. Insert into Transaksi
-            String insertTransaksiQuery = "INSERT INTO transaksi (id_transaksi, id_pelanggan, id_pengiriman, id_pembayaran, id_voucher, tanggal_transaksi) VALUES (?, ?, ?, ?, ?, CURDATE())";
-            try (PreparedStatement ps = conn.prepareStatement(insertTransaksiQuery)) {
-                ps.setString(1, newTransactionId);
-                ps.setString(2, loggedinUserID);
-                ps.setString(3, newShipmentId); // Can be null
-                ps.setString(4, newPaymentId);
-                ps.setString(5, voucher); // Assuming voucher is the ID
-                ps.executeUpdate();
-            }
-
-            // 7. Insert into transaksi_memuat_varian and update stock
-            String insertJunctionQuery = "INSERT INTO transaksi_memuat_varian (id_transaksi, id_varian, jumlah) VALUES (?, ?, ?)";
-            String updateStockQuery = "UPDATE varian_produk SET stok = stok - ? WHERE id_varian = ?";
-            try (PreparedStatement psJunction = conn.prepareStatement(insertJunctionQuery);
-                 PreparedStatement psUpdateStock = conn.prepareStatement(updateStockQuery)) {
-
-                for (App.CartItem item : cartItems) {
-                    psJunction.setString(1, newTransactionId);
-                    psJunction.setString(2, item.getIdVarian());
-                    psJunction.setInt(3, item.getAmount());
-                    psJunction.addBatch();
-
-                    psUpdateStock.setInt(1, item.getAmount());
-                    psUpdateStock.setString(2, item.getIdVarian());
-                    psUpdateStock.addBatch();
-                }
-                psJunction.executeBatch();
-                psUpdateStock.executeBatch();
-            }
-
-            conn.commit();
-
-        } catch (SQLException e) {
-            if (conn != null) {
-                try {
-                    conn.rollback();
-                } catch (SQLException ex) {
-                    ex.printStackTrace();
-                }
-            }
-            throw e;
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.setAutoCommit(true);
-                    conn.setTransactionIsolation(originalIsolationLevel); // Reset to default
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-    public void closeConnection() {
-        try {
-            if (conn != null && !conn.isClosed()) {
-                conn.close();
-            }
+            return transactions;
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return null;
     }
 }

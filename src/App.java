@@ -70,11 +70,6 @@ public class App extends JFrame {
         boolean loggedIn = false;
         while (!loggedIn) {
             String data = JOptionPane.showInputDialog(null, "Masukkan ID Pelanggan:", "Login", JOptionPane.PLAIN_MESSAGE);
-            if (data == null) {
-                dbHandler.closeConnection();
-                System.exit(0);
-                return; 
-            }
             if (data.trim().isEmpty()) {
                 JOptionPane.showMessageDialog(null, "ID tidak boleh kosong.", "Error", JOptionPane.ERROR_MESSAGE);
                 continue; 
@@ -90,10 +85,6 @@ public class App extends JFrame {
                     loggedIn = true; 
                 }
             } catch (SQLException e) {
-                JOptionPane.showMessageDialog(null, "Database Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                dbHandler.closeConnection();
-                System.exit(1);
-                return;
             }
         }
 
@@ -107,7 +98,8 @@ public class App extends JFrame {
         cartButton.addActionListener(e -> addToCart());
 
         tabbedPane.addChangeListener(e -> {
-            if (tabbedPane.getSelectedIndex() == 1) { // Keranjang tab
+            int selectedIndex = tabbedPane.getSelectedIndex();
+            if (selectedIndex == 1) { // Keranjang tab
                 calculateCartSubtotal();
             }
         });
@@ -116,12 +108,7 @@ public class App extends JFrame {
 
         refreshDataPengguna();
 
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            @Override
-            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
-                dbHandler.closeConnection();
-            }
-        });
+        
     }
 
     private void createUIComponents() {
@@ -132,6 +119,9 @@ public class App extends JFrame {
 
         JPanel keranjangPanel = createKeranjangPanel();
         tabbedPane.addTab("Keranjang", keranjangPanel);
+
+        JPanel transactionsPanel = createTransactionsPanel();
+        tabbedPane.addTab("Transactions", transactionsPanel);
     }
 
     private JPanel createKeranjangPanel() {
@@ -247,7 +237,6 @@ public class App extends JFrame {
         bonusTierCheckoutLabel = new JLabel("-");
         detailsPanel.add(bonusTierCheckoutLabel, gbc);
 
-        // Metode Pembayaran
         gbc.gridx = 0;
         gbc.gridy = 6;
         detailsPanel.add(new JLabel("Metode Pembayaran:"), gbc);
@@ -255,7 +244,6 @@ public class App extends JFrame {
         metodePembayaranComboBox = new JComboBox<>(new String[]{"Transfer Bank", "E-Money", "Kredit"});
         detailsPanel.add(metodePembayaranComboBox, gbc);
 
-        // Payment Details Panel (CardLayout)
         gbc.gridx = 0;
         gbc.gridy = 7;
         gbc.gridwidth = 2;
@@ -263,7 +251,6 @@ public class App extends JFrame {
         paymentDetailsLayout = new CardLayout();
         paymentDetailsPanel = new JPanel(paymentDetailsLayout);
 
-        // Create panels for each payment method
         paymentDetailsPanel.add(createTransferBankPanel(), "Transfer Bank");
         paymentDetailsPanel.add(createEMoneyPanel(), "E-Money");
         paymentDetailsPanel.add(createKreditPanel(), "Kredit");
@@ -274,11 +261,9 @@ public class App extends JFrame {
             String selectedMethod = (String) metodePembayaranComboBox.getSelectedItem();
             paymentDetailsLayout.show(paymentDetailsPanel, selectedMethod);
         });
-        // Show the default panel
         paymentDetailsLayout.show(paymentDetailsPanel, (String)metodePembayaranComboBox.getSelectedItem());
 
 
-        // Checkout Button
         gbc.gridx = 0;
         gbc.gridy = 8;
         gbc.gridwidth = 2;
@@ -363,6 +348,17 @@ public class App extends JFrame {
         return panel;
     }
 
+    private JPanel createTransactionsPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.add(new JLabel("Ini adalah tab riwayat.", SwingConstants.CENTER));
+        return panel;
+    }
+
+    private JPanel createTransactionsCard(){
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.add(new JLabel("ID Transaksi: "));
+        return panel;
+    }
 
     private JPanel createKatalogPanel() {
         JPanel frontPanel = new JPanel(new BorderLayout(10, 10));
