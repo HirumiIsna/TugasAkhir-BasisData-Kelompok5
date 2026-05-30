@@ -1,13 +1,6 @@
 package src;
 
-import src.backend.ManageProduct.ManageKategori;
-import src.backend.ManageProduct.ManageMerk;
-import src.backend.ManageProduct.ManagePemasok;
-import src.backend.ManageProduct.ManageProduk;
-import src.backend.ManageProduct.ManageVarian;
-import src.backend.ManageProduct.ManagePelanggan;
-import src.backend.ManageProduct.ManageTransaksi;
-import src.backend.ManageProduct.ManagePoinHistory; // [BARU]
+import src.backend.ManageProduct.*;
 import src.database.*;
 
 import javax.swing.*;
