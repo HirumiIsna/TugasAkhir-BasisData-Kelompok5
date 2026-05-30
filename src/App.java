@@ -1173,6 +1173,10 @@ public class App extends JFrame {
         loggedinUserID   = (String) pelanggan.get("id_pelanggan");
         loggedinuserNama = (String) pelanggan.get("nama");
         c1.show(MainPanel, "Front");
+
+        tabbedPane1.setSelectedIndex(0);
+        catalogManager.refreshKatalog(kategoriCB, merkCB);
+        welcome.setText("Hai, " + loggedinuserNama);
     }
 
     private void registPembeli() {
