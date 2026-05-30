@@ -5,8 +5,8 @@ import javax.swing.table.DefaultTableModel;
 import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
-import src.database.VarianProdukDAO;
-import src.database.ProdukDAO;
+import src.backend.database.VarianProdukDAO;
+import src.backend.database.ProdukDAO;
 
 public class ManageVarian {
     private VarianProdukDAO varianDAO;
