@@ -1,11 +1,14 @@
 package src;
 
-import java.awt.*;
-import java.sql.*;
-import java.util.List;
-import java.util.Map;
+import src.FrontEnd.*;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import src.backend.ManageLogistik.ManageEkspedisi;
 import src.backend.ManageLogistik.ManagePengiriman;
 import src.backend.ManageOrder.ManagePelanggan;
@@ -19,10 +22,9 @@ import src.backend.ManageProduct.ManageVarian;
 import src.backend.ManagePromo.ManageTierLoyalitas;
 import src.backend.ManagePromo.ManageVoucher;
 import src.backend.database.*;
-import src.FrontEnd.*;
-import java.util.*;
 
 public class App extends JFrame {
+    // Table
     DefaultTableModel tb1, tb2, tb3;
 
     // DAO
@@ -35,7 +37,12 @@ public class App extends JFrame {
     String loggedinuserNama;
     Connection conn = DatabaseConnection.getConnection();
 
-    // Komponen
+    // Data
+    ArrayList<Object[]> katalogItem = new ArrayList<>();
+    ArrayList<Object[]> keranjangItem = new ArrayList<>();
+    ArrayList<Object[]> dataPengantar = new ArrayList<>();
+
+    // Komponen GUI (semua komponen dari form)
     private JPanel MainPanel;
     private JPanel Front;
     private JPanel pageUtama;
@@ -44,6 +51,7 @@ public class App extends JFrame {
     private JButton buttonFront;
     private JButton buttonBack;
     private JTabbedPane tabbedPane1;
+    private JTabbedPane tabbedPane2;
     private JTextField textField1;
     private JTextField textFieldFront;
     private JButton registAkunButton;
@@ -71,8 +79,6 @@ public class App extends JFrame {
     private JLabel akunBenefit;
     private JLabel JudulAkun;
     private JTable table1;
-    private JTabbedPane tabbedPane2;
-    private JTextArea ID;
     private JTable table2;
     private JLabel welcome;
     private JTextField filterTF;
@@ -104,15 +110,16 @@ public class App extends JFrame {
     private JTextField tfOpsi;
     private JLabel TierInfo;
     private JPanel TransaksiHistory;
+    private JTextArea ID;
 
-    // Frontend
+    // Frontend Managers
     private LoginManager loginManager;
     private UserManager userManager;
     private CatalogManager catalogManager;
     private CartManager cartManager;
     private CheckoutManager checkoutManager;
 
-    // Backend
+    // Backend Managers
     private ManageProduk manageProduk;
     private ManageVarian manageVarian;
     private ManageKategori manageKategori;
@@ -120,20 +127,14 @@ public class App extends JFrame {
     private ManagePemasok managePemasok;
     private ManagePelanggan managePelanggan;
     private ManageTransaksi manageTransaksi;
-    private ManagePoinHistory managePoinHistory; // [BARU]
-
-    // Komponen Backend Baru
+    private ManagePoinHistory managePoinHistory;
     private ManageVoucher manageVoucher;
     private ManageTierLoyalitas manageTierLoyalitas;
     private ManageEkspedisi manageEkspedisi;
     private ManagePengiriman managePengiriman;
 
-    // Data
-    ArrayList<Object[]> katalogItem = new ArrayList<>();
-    ArrayList<Object[]> keranjangItem = new ArrayList<>();
-    ArrayList<Object[]> dataPengantar = new ArrayList<>();
+    private CardLayout c1;
 
-    // Komponen GUI Produk (yang sudah ada di form)
     // GUI Produk
     private JButton simpanButtonProduk;
     private JButton updateButtonProduk;
@@ -195,7 +196,7 @@ public class App extends JFrame {
     private JTextField TF_UkuranVarian;
     private JTextField TF_BarcodeVarian;
 
-    // Komponen GUI Voucher
+    // GUI Voucher
     private JTable TabelManageVoucher;
     private JTextField TF_IDVoucher;
     private JTextField TF_KodeVoucher;
@@ -212,7 +213,7 @@ public class App extends JFrame {
     private JButton deleteButtonVoucher;
     private JButton refreshDataButtonVoucher;
 
-    // Komponen GUI Tier Loyalitas
+    // GUI Tier Loyalitas
     private JTable TabelManageTier;
     private JTextField TF_IDTier;
     private JTextField TF_NamaTier;
@@ -223,7 +224,7 @@ public class App extends JFrame {
     private JButton deleteButtonTier;
     private JButton refreshDataButtonTier;
 
-    // Komponen GUI Ekspedisi
+    // GUI Ekspedisi
     private JTable TabelManageEkspedisi;
     private JTextField TF_IDEkspedisi;
     private JTextField TF_NamaEkspedisi;
@@ -234,13 +235,12 @@ public class App extends JFrame {
     private JButton deleteButtonEkspedisi;
     private JButton refreshDataButtonEkspedisi;
 
-    // Komponen GUI Pengiriman
+    // GUI Pengiriman
     private JTable TabelManagePengiriman;
     private JTextField TF_TrackIdTransaksi;
     private JTextArea TA_TrackingResult;
     private JButton trackButton;
     private JButton refreshDataButtonPengiriman;
-
 
     // GUI Pelanggan
     private JTextField TF_IDPelanggan;
@@ -268,13 +268,9 @@ public class App extends JFrame {
     private JButton refreshDataButtonPoinHistory;
     private JTable TabelManagePoinHistory;
 
-    // Untuk mode create varian (input ID produk manual)
+    // Untuk mode create varian
     private JTextField TF_IDProdukVarian;
 
-    // Card Layout
-    private CardLayout c1;
-
-    // Constructor
     public App() {
         setContentPane(MainPanel);
         setSize(1280, 720);
@@ -285,29 +281,23 @@ public class App extends JFrame {
         poinHistoryDAO   = new PoinHistoryDAO();
         tierLoyalitasDAO = new TierLoyalitasDAO();
 
+        kategoriCB.setMaximumRowCount(5);
+        merkCB.setMaximumRowCount(5);
+
         c1 = (CardLayout) MainPanel.getLayout();
         c1.show(MainPanel, "pageUtama");
 
-        buttonBack.addActionListener((e) -> c1.show(MainPanel, "Back"));
-        buttonFront.addActionListener((e) -> loginFrontend());
-        registAkunButton.addActionListener((e) -> c1.show(MainPanel, "regist"));
-        backButton.addActionListener((e) -> c1.show(MainPanel, "pageUtama"));
-        daftarButton.addActionListener((e) -> registPembeli());
-        gantiButton.addActionListener((e) -> gantiInformasiAkun(1));
-        gantiButton1.addActionListener((e) -> gantiInformasiAkun(2));
-        gantiButton2.addActionListener((e) -> gantiInformasiAkun(3));
-        gantiButton3.addActionListener((e) -> gantiInformasiAkun(4));
-        gantiButton4.addActionListener((e) -> gantiInformasiAkun(5));
+        // Setup tabel (dari file pertama — lengkap dengan tb2, tb3, spinner)
+        setupTables();
 
-        tabbedPane1.addChangeListener((e) -> refreshDataPengguna());
+        // Inisialisasi Frontend Managers
+        loginManager    = new LoginManager(this);
+        userManager     = new UserManager(this, conn);
+        catalogManager  = new CatalogManager(this, conn, katalogItem, tb2);
+        cartManager     = new CartManager(this, keranjangItem, tb3);
+        checkoutManager = new CheckoutManager(this, conn, keranjangItem, dataPengantar);
 
-        tb1 = new DefaultTableModel();
-        tb1.addColumn("Tanggal");
-        tb1.addColumn("ID Transaksi");
-        tb1.addColumn("Perubahan Poin");
-        table1.setModel(tb1);
-
-
+        // Inisialisasi Backend Managers
         initNewComponents();
 
         manageProduk        = new ManageProduk(DatabaseConnection.getConnection(), this, this::refreshAllTabs);
@@ -322,13 +312,8 @@ public class App extends JFrame {
         manageTierLoyalitas = new ManageTierLoyalitas(DatabaseConnection.getConnection(), this::refreshAllTabs);
         manageEkspedisi     = new ManageEkspedisi(DatabaseConnection.getConnection(), this::refreshAllTabs);
         managePengiriman    = new ManagePengiriman(DatabaseConnection.getConnection(), this::refreshAllTabs);
-        loginManager = new LoginManager(this);
-        userManager = new UserManager(this, conn);
-        catalogManager = new CatalogManager(this, conn, katalogItem, tb2);
-        cartManager = new CartManager(this, keranjangItem, tb3);
-        checkoutManager = new CheckoutManager(this, conn, keranjangItem, dataPengantar);
 
-        // ==================== TAMBAHKAN TAB BARU ====================
+        // Tambah tab backend baru
         try {
             tabbedPane2.addTab("Manage Voucher",        createVoucherPanel());
             tabbedPane2.addTab("Manage Tier Loyalitas", createTierPanel());
@@ -360,9 +345,100 @@ public class App extends JFrame {
             panelKategori.revalidate();
             panelKategori.repaint();
         }
-
         manageProduk.setKategoriComponents(btnPilihKategori, lblKategoriTerpilih);
 
+        // ==================== LISTENERS ====================
+
+        // Navigasi
+        buttonBack.addActionListener(e -> c1.show(MainPanel, "Back"));
+        buttonFront.addActionListener(e -> loginFrontend());
+        registAkunButton.addActionListener(e -> c1.show(MainPanel, "regist"));
+        backButton.addActionListener(e -> c1.show(MainPanel, "pageUtama"));
+        daftarButton.addActionListener(e -> registPembeli());
+
+        // Akun
+        gantiButton.addActionListener(e -> gantiInformasiAkun(1));
+        gantiButton1.addActionListener(e -> gantiInformasiAkun(2));
+        gantiButton2.addActionListener(e -> gantiInformasiAkun(3));
+        gantiButton3.addActionListener(e -> gantiInformasiAkun(4));
+        gantiButton4.addActionListener(e -> gantiInformasiAkun(5));
+
+        // Katalog & Keranjang
+        cariFilter.addActionListener(e -> catalogManager.filterBarang(
+                filterTF.getText(), kategoriCB.getSelectedItem().toString(), merkCB.getSelectedItem().toString()));
+        tambahKeKeranjangButton.addActionListener(e -> catalogManager.tambahKeKeranjang(
+                (int) jumlahSelected.getValue(), table2.getSelectedRow(), keranjangItem));
+        deleteSelectedButton.addActionListener(e -> {
+            int result = JOptionPane.showConfirmDialog(this, "Apakah ingin lanjut?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
+            if (result == JOptionPane.NO_OPTION) return;
+            cartManager.deleteSelected(tableKeranjang.getSelectedRow());
+        });
+        deleteAllButton.addActionListener(e -> {
+            int result = JOptionPane.showConfirmDialog(this, "Apakah ingin lanjut?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
+            if (result == JOptionPane.NO_OPTION) return;
+            cartManager.deleteAll();
+        });
+        checkoutButton.addActionListener(e -> checkoutManager.checkoutRun());
+
+        // Pengiriman
+        cbPengiriman.addItem("Delivery");
+        cbPengiriman.addItem("Collect");
+        cbPengiriman.addActionListener(e -> {
+            if ("Delivery".equals(cbPengiriman.getSelectedItem().toString())) {
+                checkoutManager.refreshEkspedisi(akunAlamat.getText());
+                checkoutManager.refreshHarga();
+            } else if ("Collect".equals(cbPengiriman.getSelectedItem().toString())) {
+                cbEkspedisi.removeAllItems();
+                taAlamat.setText("Ambil di Matahari terdekat!");
+                taAlamat.setEditable(false);
+                checkoutManager.refreshHarga();
+            }
+        });
+
+        // Metode Pembayaran
+        cbMethod.addItem("-"); cbMethod.addItem("Bank"); cbMethod.addItem("Kredit"); cbMethod.addItem("Dompet Digital");
+        cbMethod.addActionListener(e -> {
+            String selected = cbMethod.getSelectedItem().toString();
+            if ("-".equals(selected)) {
+                lbMethod1.setText("-"); lbMethod2.setText("2");
+                cbOpsi.removeAllItems();
+                tfOpsi.setText("");
+            } else if ("Bank".equals(selected)) {
+                lbMethod1.setText("Bank : ");
+                lbMethod2.setText("Nomor rek : ");
+                cbOpsi.removeAllItems();
+                String[] banks = {"BCA","Mandiri","BRI","BNI","CIMB Niaga","BSI","Permata Bank"};
+                for (String b : banks) cbOpsi.addItem(b);
+            } else if ("Kredit".equals(selected)) {
+                lbMethod1.setText("Bank : ");
+                lbMethod2.setText("Nomor Kredit : ");
+                cbOpsi.removeAllItems();
+                String[] banks = {"BCA","Mandiri","BRI","BNI","CIMB Niaga","BSI","Permata Bank"};
+                for (String b : banks) cbOpsi.addItem(b);
+            } else if ("Dompet Digital".equals(selected)) {
+                lbMethod1.setText("Dompet : ");
+                lbMethod2.setText("No. HP : ");
+                cbOpsi.removeAllItems();
+                String[] dompets = {"DANA","OVO","GoPay","ShopeePay","LinkAja"};
+                for (String d : dompets) cbOpsi.addItem(d);
+            }
+        });
+
+        // Tab listener
+        tabbedPane1.addChangeListener(e -> refreshDataPengguna());
+
+        // Special tab transaksi (index 2)
+        tabbedPane1.addChangeListener(e -> {
+            if (tabbedPane1.getSelectedIndex() == 2) {
+                TransactionView tv = new TransactionView(this);
+                JPanel panel = tv.buildTransactionsPanel("ALL", "DESC");
+                tabbedPane1.setComponentAt(2, panel);
+            }
+        });
+
+        // ==================== BACKEND LISTENERS ====================
+
+        // Transaksi
         updateButtonTransaksi.addActionListener(e -> {
             if (TF_IDTransaksi.getText().trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Pilih transaksi dari tabel terlebih dahulu!");
@@ -384,11 +460,11 @@ public class App extends JFrame {
             }
         });
 
+        // Poin History
         simpanButtonPoinHistory.addActionListener(e -> {
             try {
                 int perubahan = Integer.parseInt(TF_PerubahanPoin.getText().trim());
-                managePoinHistory.insertPoinHistory(
-                        TabelManagePoinHistory,
+                managePoinHistory.insertPoinHistory(TabelManagePoinHistory,
                         TF_IDPelangganPoin.getText().trim(),
                         TF_IDTransaksiPoin.getText().trim(),
                         perubahan);
@@ -412,6 +488,7 @@ public class App extends JFrame {
             }
         });
 
+        // Produk
         simpanButtonProduk.addActionListener(e -> {
             if (TF_IDProduk.getText().trim().isEmpty() || TF_NamaProduk.getText().trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "ID Produk dan Nama Produk wajib diisi!");
@@ -466,6 +543,7 @@ public class App extends JFrame {
             }
         });
 
+        // Varian
         TF_IDProdukVarian = new JTextField(15);
         manageVarian.setCreateModeComponents(TF_IDProdukVarian);
         manageVarian.setUpdateModeComponents(CMB_IDProduk);
@@ -519,6 +597,7 @@ public class App extends JFrame {
             }
         });
 
+        // Kategori
         simpanButtonKategori.addActionListener(e -> {
             if (TF_IDKategori.getText().trim().isEmpty() || TF_NamaKategori.getText().trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "ID Kategori dan Nama Kategori wajib diisi!");
@@ -553,6 +632,7 @@ public class App extends JFrame {
             }
         });
 
+        // Merk
         simpanButtonMerk.addActionListener(e -> {
             if (TF_IDMerk.getText().trim().isEmpty() || TF_NamaMerk.getText().trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "ID Merk dan Nama Merk wajib diisi!");
@@ -587,6 +667,7 @@ public class App extends JFrame {
             }
         });
 
+        // Pemasok
         simpanButtonPemasok.addActionListener(e -> {
             if (TF_IDPemasok.getText().trim().isEmpty() || TF_NamaPemasok.getText().trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "ID Pemasok dan Nama Pemasok wajib diisi!");
@@ -625,6 +706,7 @@ public class App extends JFrame {
             }
         });
 
+        // Pelanggan (backend)
         simpanButtonPelanggan.addActionListener(e -> {
             if (TF_IDPelanggan.getText().trim().isEmpty() || TF_NamaPelanggan.getText().trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "ID dan Nama Pelanggan wajib diisi!");
@@ -665,6 +747,83 @@ public class App extends JFrame {
         setVisible(true);
     }
 
+    // ===================== SETUP TABEL (dari file pertama) =====================
+    private void setupTables() {
+        tb1 = new DefaultTableModel() { public boolean isCellEditable(int r, int c) { return false; } };
+        tb1.addColumn("Tanggal"); tb1.addColumn("ID Transaksi"); tb1.addColumn("Perubahan Poin");
+        table1.setModel(tb1);
+
+        tb2 = new DefaultTableModel() { public boolean isCellEditable(int r, int c) { return false; } };
+        tb2.addColumn("Kategori"); tb2.addColumn("Nama"); tb2.addColumn("Merk");
+        tb2.addColumn("Ukuran"); tb2.addColumn("Warna"); tb2.addColumn("Stok"); tb2.addColumn("Harga");
+        table2.setModel(tb2);
+
+        tb3 = new DefaultTableModel() { public boolean isCellEditable(int r, int c) { return false; } };
+        tb3.addColumn("Nama"); tb3.addColumn("Merk"); tb3.addColumn("Ukuran");
+        tb3.addColumn("Warna"); tb3.addColumn("Harga"); tb3.addColumn("Jumlah");
+        tableKeranjang.setModel(tb3);
+
+        table2.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tableKeranjang.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tableKeranjang.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                int row = tableKeranjang.getSelectedRow();
+                if (row != -1) {
+                    Object[] select = keranjangItem.get(row);
+                    int max = (int) select[8];
+                    SpinnerNumberModel model2 = new SpinnerNumberModel(1, 1, max, 1);
+                    spinnerJumlah.setModel(model2);
+                    spinnerJumlah.setValue((int) select[5]);
+                }
+            }
+        });
+        spinnerJumlah.addChangeListener(e -> {
+            int row = tableKeranjang.getSelectedRow();
+            if (row != -1) cartManager.ubahSelectedKeranjang(row, (int) spinnerJumlah.getValue());
+        });
+
+        SpinnerNumberModel model = new SpinnerNumberModel(0, 0, 999, 1);
+        jumlahSelected.setModel(model);
+    }
+
+    // ===================== REFRESH (gabungan kedua file) =====================
+    public void refreshDataPengguna() {
+        int index = tabbedPane1.getSelectedIndex();
+        if (index == 0) {
+            catalogManager.refreshKatalog(kategoriCB, merkCB);
+        } else if (index == 1) {
+            tb3.setRowCount(0);
+            for (Object[] o : keranjangItem) tb3.addRow(o);
+            userManager.loadDataPelanggan(loggedinUserID);
+            TierInfo.setText(akunBenefit.getText());
+            checkoutManager.refreshEkspedisi(akunAlamat.getText());
+            checkoutManager.refreshHarga();
+        } else if (index == 2) {
+            // Ditangani oleh ChangeListener TransactionView
+        } else if (index == 3) {
+            List<Map<String, Object>> historyList = poinHistoryDAO.getByPelangganId(loggedinUserID);
+            tb1.setRowCount(0);
+            for (Map<String, Object> history : historyList) {
+                tb1.addRow(new Object[]{history.get("tanggal"), history.get("id_transaksi"), history.get("perubahan_point")});
+            }
+        } else if (index == 4) {
+            Map<String, Object> pelanggan = pelangganDAO.getById(loggedinUserID);
+            if (pelanggan != null) {
+                akunID.setText((String) pelanggan.get("id_pelanggan"));
+                akunNama.setText((String) pelanggan.get("nama"));
+                akunEmail.setText((String) pelanggan.get("email"));
+                akunTelp.setText((String) pelanggan.get("no_telp"));
+                akunCreated.setText(pelanggan.get("tgl_daftar") != null ? pelanggan.get("tgl_daftar").toString() : "");
+                akunAlamat.setText((String) pelanggan.get("alamat_utama"));
+                String idTier = (String) pelanggan.get("id_tier");
+                Map<String, Object> tier = tierLoyalitasDAO.getById(idTier);
+                if (tier != null) {
+                    akunTier.setText(idTier + " - " + tier.get("nama_tier"));
+                    akunBenefit.setText((String) tier.get("benefit"));
+                }
+            }
+        }
+    }
 
     private void refreshAllTabs() {
         if (manageProduk != null)        manageProduk.loadDataProduk(TabelManageProduk);
@@ -732,6 +891,7 @@ public class App extends JFrame {
         refreshDataButtonPengiriman = new JButton("Refresh");
     }
 
+    // ===================== PANEL BUILDER =====================
     private JPanel createVoucherPanel() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -745,44 +905,31 @@ public class App extends JFrame {
         int row = 0;
         gbc.gridx = 0; gbc.gridy = row; formPanel.add(new JLabel("ID Voucher:"), gbc);
         gbc.gridx = 1; formPanel.add(TF_IDVoucher, gbc); row++;
-
         gbc.gridx = 0; gbc.gridy = row; formPanel.add(new JLabel("Kode Voucher:"), gbc);
         gbc.gridx = 1; formPanel.add(TF_KodeVoucher, gbc); row++;
-
         gbc.gridx = 0; gbc.gridy = row; formPanel.add(new JLabel("Minimal Belanja:"), gbc);
         gbc.gridx = 1; formPanel.add(TF_MinBelanjaVoucher, gbc); row++;
-
         gbc.gridx = 0; gbc.gridy = row; formPanel.add(new JLabel("Tanggal Mulai (YYYY-MM-DD):"), gbc);
         gbc.gridx = 1; formPanel.add(TF_TglMulaiVoucher, gbc); row++;
-
         gbc.gridx = 0; gbc.gridy = row; formPanel.add(new JLabel("Tanggal Berakhir (YYYY-MM-DD):"), gbc);
         gbc.gridx = 1; formPanel.add(TF_TglBerakhirVoucher, gbc); row++;
-
         gbc.gridx = 0; gbc.gridy = row; formPanel.add(new JLabel("Kuota:"), gbc);
         gbc.gridx = 1; formPanel.add(TF_KuotaVoucher, gbc); row++;
-
         gbc.gridx = 0; gbc.gridy = row; formPanel.add(new JLabel("Tipe Voucher:"), gbc);
         gbc.gridx = 1; formPanel.add(CMB_TipeVoucher, gbc); row++;
-
         gbc.gridx = 0; gbc.gridy = row; formPanel.add(new JLabel("Persen Diskon:"), gbc);
         gbc.gridx = 1; formPanel.add(TF_PersenDiskon, gbc); row++;
-
         gbc.gridx = 0; gbc.gridy = row; formPanel.add(new JLabel("Maks Diskon:"), gbc);
         gbc.gridx = 1; formPanel.add(TF_MaksDiskon, gbc); row++;
-
         gbc.gridx = 0; gbc.gridy = row; formPanel.add(new JLabel("Nominal Potongan:"), gbc);
         gbc.gridx = 1; formPanel.add(TF_NominalPotongan, gbc);
 
         JPanel buttonPanel = new JPanel(new FlowLayout());
-        buttonPanel.add(simpanButtonVoucher);
-        buttonPanel.add(updateButtonVoucher);
-        buttonPanel.add(deleteButtonVoucher);
-        buttonPanel.add(refreshDataButtonVoucher);
-
-        JScrollPane scrollPane = new JScrollPane(TabelManageVoucher);
+        buttonPanel.add(simpanButtonVoucher); buttonPanel.add(updateButtonVoucher);
+        buttonPanel.add(deleteButtonVoucher); buttonPanel.add(refreshDataButtonVoucher);
 
         panel.add(formPanel, BorderLayout.NORTH);
-        panel.add(scrollPane, BorderLayout.CENTER);
+        panel.add(new JScrollPane(TabelManageVoucher), BorderLayout.CENTER);
         panel.add(buttonPanel, BorderLayout.SOUTH);
 
         CMB_TipeVoucher.addActionListener(e -> {
@@ -816,33 +963,25 @@ public class App extends JFrame {
                             Integer.parseInt(TF_PersenDiskon.getText()), Integer.parseInt(TF_MaksDiskon.getText()));
                 }
                 clearFormVoucher();
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
-            }
+            } catch (Exception ex) { JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage()); }
         });
-
         updateButtonVoucher.addActionListener(e -> {
             try {
                 manageVoucher.updateVoucher(TabelManageVoucher, TF_IDVoucher.getText(),
                         Integer.parseInt(TF_KuotaVoucher.getText()), java.sql.Date.valueOf(TF_TglMulaiVoucher.getText()),
                         java.sql.Date.valueOf(TF_TglBerakhirVoucher.getText()));
                 clearFormVoucher();
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
-            }
+            } catch (Exception ex) { JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage()); }
         });
-
         deleteButtonVoucher.addActionListener(e -> manageVoucher.deleteVoucher(TabelManageVoucher));
         refreshDataButtonVoucher.addActionListener(e -> manageVoucher.loadDataVoucher(TabelManageVoucher));
-
         TabelManageVoucher.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 int row = TabelManageVoucher.getSelectedRow();
                 if (row >= 0) {
                     TF_IDVoucher.setText(TabelManageVoucher.getValueAt(row, 0).toString());
                     TF_KodeVoucher.setText(TabelManageVoucher.getValueAt(row, 1).toString());
-                    String minBelanja = TabelManageVoucher.getValueAt(row, 2).toString().replace("Rp ", "").replace(",", "");
-                    TF_MinBelanjaVoucher.setText(minBelanja);
+                    TF_MinBelanjaVoucher.setText(TabelManageVoucher.getValueAt(row, 2).toString().replace("Rp ", "").replace(",", ""));
                     TF_TglMulaiVoucher.setText(TabelManageVoucher.getValueAt(row, 3).toString());
                     TF_TglBerakhirVoucher.setText(TabelManageVoucher.getValueAt(row, 4).toString());
                     TF_KuotaVoucher.setText(TabelManageVoucher.getValueAt(row, 5).toString());
@@ -850,7 +989,6 @@ public class App extends JFrame {
                 }
             }
         });
-
         return panel;
     }
 
@@ -867,59 +1005,43 @@ public class App extends JFrame {
         int row = 0;
         gbc.gridx = 0; gbc.gridy = row; formPanel.add(new JLabel("ID Tier:"), gbc);
         gbc.gridx = 1; formPanel.add(TF_IDTier, gbc); row++;
-
         gbc.gridx = 0; gbc.gridy = row; formPanel.add(new JLabel("Nama Tier:"), gbc);
         gbc.gridx = 1; formPanel.add(TF_NamaTier, gbc); row++;
-
         gbc.gridx = 0; gbc.gridy = row; formPanel.add(new JLabel("Minimal Poin:"), gbc);
         gbc.gridx = 1; formPanel.add(TF_MinPoinTier, gbc); row++;
-
         gbc.gridx = 0; gbc.gridy = row; formPanel.add(new JLabel("Benefit:"), gbc);
         gbc.gridx = 1; formPanel.add(TF_BenefitTier, gbc);
 
         JPanel buttonPanel = new JPanel(new FlowLayout());
-        buttonPanel.add(simpanButtonTier);
-        buttonPanel.add(updateButtonTier);
-        buttonPanel.add(deleteButtonTier);
-        buttonPanel.add(refreshDataButtonTier);
-
-        JScrollPane scrollPane = new JScrollPane(TabelManageTier);
+        buttonPanel.add(simpanButtonTier); buttonPanel.add(updateButtonTier);
+        buttonPanel.add(deleteButtonTier); buttonPanel.add(refreshDataButtonTier);
 
         panel.add(formPanel, BorderLayout.NORTH);
-        panel.add(scrollPane, BorderLayout.CENTER);
+        panel.add(new JScrollPane(TabelManageTier), BorderLayout.CENTER);
         panel.add(buttonPanel, BorderLayout.SOUTH);
 
         simpanButtonTier.addActionListener(e -> {
             if (TF_IDTier.getText().trim().isEmpty() || TF_NamaTier.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "ID Tier dan Nama Tier wajib diisi!");
-                return;
+                JOptionPane.showMessageDialog(this, "ID Tier dan Nama Tier wajib diisi!"); return;
             }
             try {
                 manageTierLoyalitas.insertTier(TabelManageTier, TF_IDTier.getText(), TF_NamaTier.getText(),
                         Integer.parseInt(TF_MinPoinTier.getText()), TF_BenefitTier.getText());
                 clearFormTier();
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Minimal Poin harus berupa angka!");
-            }
+            } catch (NumberFormatException ex) { JOptionPane.showMessageDialog(this, "Minimal Poin harus berupa angka!"); }
         });
-
         updateButtonTier.addActionListener(e -> {
             if (TF_IDTier.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Pilih tier yang akan diupdate!");
-                return;
+                JOptionPane.showMessageDialog(this, "Pilih tier yang akan diupdate!"); return;
             }
             try {
                 manageTierLoyalitas.updateTier(TabelManageTier, TF_IDTier.getText(), TF_NamaTier.getText(),
                         Integer.parseInt(TF_MinPoinTier.getText()), TF_BenefitTier.getText());
                 clearFormTier();
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Minimal Poin harus berupa angka!");
-            }
+            } catch (NumberFormatException ex) { JOptionPane.showMessageDialog(this, "Minimal Poin harus berupa angka!"); }
         });
-
         deleteButtonTier.addActionListener(e -> manageTierLoyalitas.deleteTier(TabelManageTier));
         refreshDataButtonTier.addActionListener(e -> manageTierLoyalitas.loadDataTier(TabelManageTier));
-
         TabelManageTier.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 int row = TabelManageTier.getSelectedRow();
@@ -931,7 +1053,6 @@ public class App extends JFrame {
                 }
             }
         });
-
         return panel;
     }
 
@@ -948,51 +1069,39 @@ public class App extends JFrame {
         int row = 0;
         gbc.gridx = 0; gbc.gridy = row; formPanel.add(new JLabel("ID Ekspedisi:"), gbc);
         gbc.gridx = 1; formPanel.add(TF_IDEkspedisi, gbc); row++;
-
         gbc.gridx = 0; gbc.gridy = row; formPanel.add(new JLabel("Nama Ekspedisi:"), gbc);
         gbc.gridx = 1; formPanel.add(TF_NamaEkspedisi, gbc); row++;
-
         gbc.gridx = 0; gbc.gridy = row; formPanel.add(new JLabel("Kode:"), gbc);
         gbc.gridx = 1; formPanel.add(TF_KodeEkspedisi, gbc); row++;
-
         gbc.gridx = 0; gbc.gridy = row; formPanel.add(new JLabel("Status:"), gbc);
         gbc.gridx = 1; formPanel.add(CMB_StatusEkspedisi, gbc);
 
         JPanel buttonPanel = new JPanel(new FlowLayout());
-        buttonPanel.add(simpanButtonEkspedisi);
-        buttonPanel.add(updateButtonEkspedisi);
-        buttonPanel.add(deleteButtonEkspedisi);
-        buttonPanel.add(refreshDataButtonEkspedisi);
-
-        JScrollPane scrollPane = new JScrollPane(TabelManageEkspedisi);
+        buttonPanel.add(simpanButtonEkspedisi); buttonPanel.add(updateButtonEkspedisi);
+        buttonPanel.add(deleteButtonEkspedisi); buttonPanel.add(refreshDataButtonEkspedisi);
 
         panel.add(formPanel, BorderLayout.NORTH);
-        panel.add(scrollPane, BorderLayout.CENTER);
+        panel.add(new JScrollPane(TabelManageEkspedisi), BorderLayout.CENTER);
         panel.add(buttonPanel, BorderLayout.SOUTH);
 
         simpanButtonEkspedisi.addActionListener(e -> {
             if (TF_IDEkspedisi.getText().trim().isEmpty() || TF_NamaEkspedisi.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "ID Ekspedisi dan Nama Ekspedisi wajib diisi!");
-                return;
+                JOptionPane.showMessageDialog(this, "ID Ekspedisi dan Nama Ekspedisi wajib diisi!"); return;
             }
             manageEkspedisi.insertEkspedisi(TabelManageEkspedisi, TF_IDEkspedisi.getText(), TF_NamaEkspedisi.getText(),
                     TF_KodeEkspedisi.getText(), (String) CMB_StatusEkspedisi.getSelectedItem());
             clearFormEkspedisi();
         });
-
         updateButtonEkspedisi.addActionListener(e -> {
             if (TF_IDEkspedisi.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Pilih ekspedisi yang akan diupdate!");
-                return;
+                JOptionPane.showMessageDialog(this, "Pilih ekspedisi yang akan diupdate!"); return;
             }
             manageEkspedisi.updateEkspedisi(TabelManageEkspedisi, TF_IDEkspedisi.getText(), TF_NamaEkspedisi.getText(),
                     TF_KodeEkspedisi.getText(), (String) CMB_StatusEkspedisi.getSelectedItem());
             clearFormEkspedisi();
         });
-
         deleteButtonEkspedisi.addActionListener(e -> manageEkspedisi.deleteEkspedisi(TabelManageEkspedisi));
         refreshDataButtonEkspedisi.addActionListener(e -> manageEkspedisi.loadDataEkspedisi(TabelManageEkspedisi));
-
         TabelManageEkspedisi.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 int row = TabelManageEkspedisi.getSelectedRow();
@@ -1004,7 +1113,6 @@ public class App extends JFrame {
                 }
             }
         });
-
         return panel;
     }
 
@@ -1021,7 +1129,6 @@ public class App extends JFrame {
 
         JScrollPane scrollPaneTracking = new JScrollPane(TA_TrackingResult);
         scrollPaneTracking.setBorder(BorderFactory.createTitledBorder("Hasil Tracking"));
-
         JScrollPane scrollPaneTable = new JScrollPane(TabelManagePengiriman);
         scrollPaneTable.setBorder(BorderFactory.createTitledBorder("Daftar Pengiriman"));
 
@@ -1035,7 +1142,6 @@ public class App extends JFrame {
                 managePengiriman.trackPengiriman(TA_TrackingResult, TF_TrackIdTransaksi.getText().trim()));
         refreshDataButtonPengiriman.addActionListener(e ->
                 managePengiriman.loadDataPengiriman(TabelManagePengiriman));
-
         TabelManagePengiriman.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 int row = TabelManagePengiriman.getSelectedRow();
@@ -1052,99 +1158,46 @@ public class App extends JFrame {
                 }
             }
         });
-
         return panel;
     }
 
-    private void clearFormPoinHistory() {
-        TF_IDPelangganPoin.setText("");
-        TF_IDTransaksiPoin.setText("");
-        TF_PerubahanPoin.setText("");
+    // ===================== AUTH (dari file kedua — pakai DAO) =====================
+    private void loginFrontend() {
+        String data = textFieldFront.getText().trim();
+        if (data.isEmpty()) { JOptionPane.showMessageDialog(this, "ID Kosong"); return; }
+        Map<String, Object> pelanggan = pelangganDAO.getById(data);
+        if (pelanggan == null) {
+            JOptionPane.showMessageDialog(this, "Data Pelanggan tidak Ditemukan!", "Not Found", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        loggedinUserID   = (String) pelanggan.get("id_pelanggan");
+        loggedinuserNama = (String) pelanggan.get("nama");
+        c1.show(MainPanel, "Front");
     }
 
-    private void clearFormPelanggan() {
-        TF_IDPelanggan.setText(""); TF_NamaPelanggan.setText("");
-        TF_TelpPelanggan.setText(""); TF_AlamatPelanggan.setText("");
+    private void registPembeli() {
+        String id = IDRegist.getText().trim(), nama = namaRegist.getText().trim();
+        String email = emailRegist.getText().trim(), telp = telpRegist.getText().trim();
+        String alamat = alamatRegist.getText().trim();
+        if (id.isEmpty() || nama.isEmpty() || email.isEmpty() || telp.isEmpty() || alamat.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Data tidak boleh kosong"); return;
+        }
+        if (pelangganDAO.getById(id) != null) {
+            JOptionPane.showMessageDialog(this, "ID Pelanggan sudah digunakan!", "Error", JOptionPane.WARNING_MESSAGE); return;
+        }
+        if (pelangganDAO.insert(id, nama, email, telp, alamat)) {
+            JOptionPane.showMessageDialog(this, "Akun berhasil ditambahkan!");
+            IDRegist.setText(""); namaRegist.setText(""); emailRegist.setText("");
+            telpRegist.setText(""); alamatRegist.setText("");
+            c1.show(MainPanel, "pageUtama");
+        } else {
+            JOptionPane.showMessageDialog(this, "Gagal menambahkan akun!", "Error", JOptionPane.WARNING_MESSAGE);
+        }
     }
-
-    private void clearFormTransaksi() {
-        TF_IDTransaksi.setText("");
-        if (CMB_StatusTransaksi.getItemCount() > 0) CMB_StatusTransaksi.setSelectedIndex(0);
-    }
-
-    private void clearFormProduk() {
-        TF_IDProduk.setText("");
-        TF_NamaProduk.setText("");
-        TF_DeskripsiProduk.setText("");
-        if (CMB_MerkProduk.getItemCount() > 0)   CMB_MerkProduk.setSelectedIndex(0);
-        if (CMB_PemasokProduk.getItemCount() > 0) CMB_PemasokProduk.setSelectedIndex(0);
-        manageProduk.clearSelectedKategori();
-    }
-
-    private void clearFormVarian() {
-        TF_IDProdukVarian.setText("");
-        TF_IDVarian.setText("");
-        TF_UkuranVarian.setText("");
-        TF_WarnaVarian.setText("");
-        TF_BeratVarian.setText("");
-        TF_StokVarian.setText("");
-        TF_HargaVarian.setText("");
-        TF_BarcodeVarian.setText("");
-        if (CMB_IDProduk.getItemCount() > 0) CMB_IDProduk.setSelectedIndex(0);
-    }
-
-    private void clearFormKategori() {
-        TF_IDKategori.setText("");
-        TF_NamaKategori.setText("");
-        TF_DeskripsiKategori.setText("");
-    }
-
-    private void clearFormMerk() {
-        TF_IDMerk.setText("");
-        TF_NamaMerk.setText("");
-        TF_DeskripsiMerk.setText("");
-    }
-
-    private void clearFormPemasok() {
-        TF_IDPemasok.setText("");
-        TF_NamaPemasok.setText("");
-        TF_EmailPemasok.setText("");
-        TF_TelpPemasok.setText("");
-        TF_AlamatPemasok.setText("");
-    }
-
-    private void clearFormVoucher() {
-        TF_IDVoucher.setText("");
-        TF_KodeVoucher.setText("");
-        TF_MinBelanjaVoucher.setText("");
-        TF_TglMulaiVoucher.setText("");
-        TF_TglBerakhirVoucher.setText("");
-        TF_KuotaVoucher.setText("");
-        TF_PersenDiskon.setText("");
-        TF_MaksDiskon.setText("");
-        TF_NominalPotongan.setText("");
-        CMB_TipeVoucher.setSelectedIndex(0);
-    }
-
-    private void clearFormTier() {
-        TF_IDTier.setText("");
-        TF_NamaTier.setText("");
-        TF_MinPoinTier.setText("");
-        TF_BenefitTier.setText("");
-    }
-
-    private void clearFormEkspedisi() {
-        TF_IDEkspedisi.setText("");
-        TF_NamaEkspedisi.setText("");
-        TF_KodeEkspedisi.setText("");
-        CMB_StatusEkspedisi.setSelectedIndex(0);
-    }
-
 
     private void gantiInformasiAkun(int e) {
         String informasi = JOptionPane.showInputDialog(this, "Masukan Data Pengganti : ");
         if (informasi == null || informasi.isEmpty()) return;
-
         boolean success = false;
         switch (e) {
             case 1:
@@ -1158,15 +1211,9 @@ public class App extends JFrame {
                 success = pelangganDAO.updateNama(loggedinUserID, informasi);
                 if (success) loggedinuserNama = informasi;
                 break;
-            case 3:
-                success = pelangganDAO.updateEmail(loggedinUserID, informasi);
-                break;
-            case 4:
-                success = pelangganDAO.updateNoTelp(loggedinUserID, informasi);
-                break;
-            case 5:
-                success = pelangganDAO.updateAlamat(loggedinUserID, informasi);
-                break;
+            case 3: success = pelangganDAO.updateEmail(loggedinUserID, informasi); break;
+            case 4: success = pelangganDAO.updateNoTelp(loggedinUserID, informasi); break;
+            case 5: success = pelangganDAO.updateAlamat(loggedinUserID, informasi); break;
         }
         if (success) {
             JOptionPane.showMessageDialog(this, "Data berhasil diupdate!");
@@ -1176,90 +1223,35 @@ public class App extends JFrame {
         }
     }
 
-    public void refreshDataPengguna() {
-        int index = tabbedPane1.getSelectedIndex();
-        if (index == 3) {
-            List<Map<String, Object>> historyList = poinHistoryDAO.getByPelangganId(loggedinUserID);
-            tb1.setRowCount(0);
-            for (Map<String, Object> history : historyList) {
-                tb1.addRow(new Object[]{history.get("tanggal"), history.get("id_transaksi"), history.get("perubahan_point")});
-            }
-        }
-        if (index == 4) {
-            Map<String, Object> pelanggan = pelangganDAO.getById(loggedinUserID);
-            if (pelanggan != null) {
-                akunID.setText((String) pelanggan.get("id_pelanggan"));
-                akunNama.setText((String) pelanggan.get("nama"));
-                akunEmail.setText((String) pelanggan.get("email"));
-                akunTelp.setText((String) pelanggan.get("no_telp"));
-                akunCreated.setText(pelanggan.get("tgl_daftar") != null ? pelanggan.get("tgl_daftar").toString() : "");
-                akunAlamat.setText((String) pelanggan.get("alamat_utama"));
-                String idTier = (String) pelanggan.get("id_tier");
-                Map<String, Object> tier = tierLoyalitasDAO.getById(idTier);
-                if (tier != null) {
-                    akunTier.setText(idTier + " - " + tier.get("nama_tier"));
-                    akunBenefit.setText((String) tier.get("benefit"));
-                }
-            }
-        }
+    // ===================== CLEAR FORM =====================
+    private void clearFormPoinHistory() { TF_IDPelangganPoin.setText(""); TF_IDTransaksiPoin.setText(""); TF_PerubahanPoin.setText(""); }
+    private void clearFormPelanggan() { TF_IDPelanggan.setText(""); TF_NamaPelanggan.setText(""); TF_TelpPelanggan.setText(""); TF_AlamatPelanggan.setText(""); }
+    private void clearFormTransaksi() { TF_IDTransaksi.setText(""); if (CMB_StatusTransaksi.getItemCount() > 0) CMB_StatusTransaksi.setSelectedIndex(0); }
+    private void clearFormProduk() {
+        TF_IDProduk.setText(""); TF_NamaProduk.setText(""); TF_DeskripsiProduk.setText("");
+        if (CMB_MerkProduk.getItemCount() > 0) CMB_MerkProduk.setSelectedIndex(0);
+        if (CMB_PemasokProduk.getItemCount() > 0) CMB_PemasokProduk.setSelectedIndex(0);
+        manageProduk.clearSelectedKategori();
     }
-
-    private void registPembeli() {
-        String id     = IDRegist.getText().trim();
-        String nama   = namaRegist.getText().trim();
-        String email  = emailRegist.getText().trim();
-        String telp   = telpRegist.getText().trim();
-        String alamat = alamatRegist.getText().trim();
-
-        if (id.isEmpty() || nama.isEmpty() || email.isEmpty() || telp.isEmpty() || alamat.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Data tidak boleh kosong");
-            return;
-        }
-        if (pelangganDAO.getById(id) != null) {
-            JOptionPane.showMessageDialog(this, "ID Pelanggan sudah digunakan!", "Error", JOptionPane.WARNING_MESSAGE); return;
-        }
-        if (pelangganDAO.insert(id, nama, email, telp, alamat)) {
-            JOptionPane.showMessageDialog(this, "Akun berhasil ditambahkan!");
-            IDRegist.setText("");
-            namaRegist.setText("");
-            emailRegist.setText("");
-            telpRegist.setText("");
-            alamatRegist.setText("");
-            c1.show(MainPanel, "pageUtama");
-        } else {
-            JOptionPane.showMessageDialog(this, "Gagal menambahkan akun!", "Error", JOptionPane.WARNING_MESSAGE);
-        }
+    private void clearFormVarian() {
+        TF_IDProdukVarian.setText(""); TF_IDVarian.setText(""); TF_UkuranVarian.setText("");
+        TF_WarnaVarian.setText(""); TF_BeratVarian.setText(""); TF_StokVarian.setText("");
+        TF_HargaVarian.setText(""); TF_BarcodeVarian.setText("");
+        if (CMB_IDProduk.getItemCount() > 0) CMB_IDProduk.setSelectedIndex(0);
     }
-
-    private void loginFrontend() {
-        String data = textFieldFront.getText().trim();
-        if (data.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "ID Kosong");
-            return;
-        }
-        Map<String, Object> pelanggan = pelangganDAO.getById(data);
-        if (pelanggan == null) {
-            JOptionPane.showMessageDialog(this, "Data Pelanggan tidak Ditemukan!", "Not Found", JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
-        loggedinUserID   = (String) pelanggan.get("id_pelanggan");
-        loggedinuserNama = (String) pelanggan.get("nama");
-        c1.show(MainPanel, "Front");
+    private void clearFormKategori() { TF_IDKategori.setText(""); TF_NamaKategori.setText(""); TF_DeskripsiKategori.setText(""); }
+    private void clearFormMerk() { TF_IDMerk.setText(""); TF_NamaMerk.setText(""); TF_DeskripsiMerk.setText(""); }
+    private void clearFormPemasok() { TF_IDPemasok.setText(""); TF_NamaPemasok.setText(""); TF_EmailPemasok.setText(""); TF_TelpPemasok.setText(""); TF_AlamatPemasok.setText(""); }
+    private void clearFormVoucher() {
+        TF_IDVoucher.setText(""); TF_KodeVoucher.setText(""); TF_MinBelanjaVoucher.setText("");
+        TF_TglMulaiVoucher.setText(""); TF_TglBerakhirVoucher.setText(""); TF_KuotaVoucher.setText("");
+        TF_PersenDiskon.setText(""); TF_MaksDiskon.setText(""); TF_NominalPotongan.setText("");
+        CMB_TipeVoucher.setSelectedIndex(0);
     }
+    private void clearFormTier() { TF_IDTier.setText(""); TF_NamaTier.setText(""); TF_MinPoinTier.setText(""); TF_BenefitTier.setText(""); }
+    private void clearFormEkspedisi() { TF_IDEkspedisi.setText(""); TF_NamaEkspedisi.setText(""); TF_KodeEkspedisi.setText(""); CMB_StatusEkspedisi.setSelectedIndex(0); }
 
-    public void refreshHarga() {
-        checkoutManager.refreshHarga();
-    }
-
-    public static void main(String[] args) {
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        new App();
-    }
-
+    // ===================== GETTERS & SETTERS =====================
     public void setLoggedinUserID(String id) { this.loggedinUserID = id; }
     public void setLoggedinuserNama(String nama) { this.loggedinuserNama = nama; }
     public String getLoggedinUserID() { return loggedinUserID; }
@@ -1267,6 +1259,7 @@ public class App extends JFrame {
     public void setWelcomeText(String text) { welcome.setText(text); }
     public void showFrontPanel() { c1.show(MainPanel, "Front"); }
     public JTabbedPane getTabbedPane() { return tabbedPane1; }
+    public Connection getConnection() { return conn; }
 
     public void setAkunID(String text) { akunID.setText(text); }
     public void setAkunNama(String text) { akunNama.setText(text); }
@@ -1291,7 +1284,15 @@ public class App extends JFrame {
     public void setTaAlamatText(String text) { taAlamat.setText(text); }
     public void clearCbEkspedisi() { cbEkspedisi.removeAllItems(); }
     public void addCbEkspedisiItem(String item) { cbEkspedisi.addItem(item); }
-
     public JComboBox<String> getKategoriCB() { return kategoriCB; }
     public JComboBox<String> getMerkCB() { return merkCB; }
+
+    public void refreshHarga() { checkoutManager.refreshHarga(); }
+
+    public static void main(String[] args) {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) { e.printStackTrace(); }
+        new App();
+    }
 }
