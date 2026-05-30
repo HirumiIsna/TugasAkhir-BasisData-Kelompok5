@@ -1,8 +1,6 @@
-package src.database;
+package src.backend.database;
 
-import javax.swing.*;
 import java.sql.*;
-import java.util.HashMap;
 import java.util.Map;
 
 public class PaymentDAO {

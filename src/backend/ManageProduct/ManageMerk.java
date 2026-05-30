@@ -5,7 +5,7 @@ import javax.swing.table.DefaultTableModel;
 import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
-import src.database.MerkDAO;
+import src.backend.database.MerkDAO;
 
 public class ManageMerk {
     private MerkDAO merkDAO;

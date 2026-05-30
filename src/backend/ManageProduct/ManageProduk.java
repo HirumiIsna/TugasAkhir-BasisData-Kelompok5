@@ -7,10 +7,10 @@ import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import src.database.ProdukDAO;
-import src.database.KategoriDAO;
-import src.database.MerkDAO;
-import src.database.PemasokDAO;
+import src.backend.database.ProdukDAO;
+import src.backend.database.KategoriDAO;
+import src.backend.database.MerkDAO;
+import src.backend.database.PemasokDAO;
 
 public class ManageProduk {
     private ProdukDAO produkDAO;
