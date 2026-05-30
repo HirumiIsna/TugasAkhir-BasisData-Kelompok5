@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="src.App">
   <grid id="27dc6" binding="MainPanel" layout-manager="CardLayout" hgap="0" vgap="0">
-    <constraints/>
+    <constraints>
+      <xy x="0" y="0" width="921" height="572"/>
+    </constraints>
     <properties/>
     <border type="none"/>
     <children>
@@ -18,14 +20,14 @@
         <children>
           <component id="99851" class="javax.swing.JLabel" binding="Judul">
             <constraints>
-              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
-              <gridbag top="5" left="5" bottom="5" right="5" weightx="0.0" weighty="0.0"/>
+              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="2" fill="0" indent="0" use-parent-layout="false"/>
+              <gridbag top="5" left="5" bottom="5" right="5" weightx="0.2" weighty="1.0"/>
             </constraints>
             <properties>
               <background color="-720897"/>
               <font name="JetBrains Mono" size="36" style="1"/>
               <foreground color="-1"/>
-              <text value="Pilih Front/&#10;Back END"/>
+              <text value="Login User"/>
             </properties>
           </component>
           <component id="3edda" class="javax.swing.JTextField" binding="textFieldFront">
@@ -33,39 +35,14 @@
               <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                 <preferred-size width="150" height="-1"/>
               </grid>
-              <gridbag weightx="0.0" weighty="0.0"/>
+              <gridbag top="5" left="5" bottom="5" right="5" weightx="0.02" weighty="0.0"/>
             </constraints>
             <properties/>
-          </component>
-          <component id="62c0f" class="javax.swing.JTextField" binding="textField1" default-binding="true">
-            <constraints>
-              <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
-                <preferred-size width="150" height="-1"/>
-              </grid>
-              <gridbag weightx="0.0" weighty="0.0"/>
-            </constraints>
-            <properties/>
-          </component>
-          <component id="50d2d" class="javax.swing.JButton" binding="buttonBack">
-            <constraints>
-              <grid row="2" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-              <gridbag top="8" left="8" bottom="8" right="8" weightx="1.0" weighty="0.0"/>
-            </constraints>
-            <properties>
-              <background color="-13330213"/>
-              <borderPainted value="false"/>
-              <contentAreaFilled value="true"/>
-              <focusPainted value="false"/>
-              <focusable value="false"/>
-              <font name="JetBrains Mono" size="16" style="1"/>
-              <foreground color="-5122"/>
-              <text value="Login Back-End"/>
-            </properties>
           </component>
           <component id="fcc18" class="javax.swing.JButton" binding="buttonFront">
             <constraints>
               <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-              <gridbag top="8" left="8" bottom="8" right="8" weightx="1.0" weighty="0.0"/>
+              <gridbag top="8" left="8" bottom="8" right="8" weightx="0.2" weighty="0.0"/>
             </constraints>
             <properties>
               <background color="-13330213"/>
@@ -76,13 +53,13 @@
               <focusable value="false"/>
               <font name="JetBrains Mono" size="16" style="1"/>
               <foreground color="-5122"/>
-              <text value="Login Front-End"/>
+              <text value="Login"/>
             </properties>
           </component>
           <component id="7cf5b" class="javax.swing.JLabel">
             <constraints>
               <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="1.0" weighty="0.0"/>
+              <gridbag top="5" left="5" bottom="5" right="5" weightx="0.1" weighty="0.0"/>
             </constraints>
             <properties>
               <background color="-720897"/>
@@ -90,13 +67,24 @@
               <foreground color="-2038299"/>
               <horizontalAlignment value="0"/>
               <horizontalTextPosition value="0"/>
-              <text value="Masukan ID Pelanggan"/>
+              <text value="ID Pelanggan"/>
             </properties>
           </component>
+          <grid id="64ccd" layout-manager="BorderLayout" hgap="0" vgap="0">
+            <constraints>
+              <grid row="0" column="3" row-span="4" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+              <gridbag weightx="10.0" weighty="0.0"/>
+            </constraints>
+            <properties>
+              <background color="-12762558"/>
+            </properties>
+            <border type="none"/>
+            <children/>
+          </grid>
           <component id="3e467" class="javax.swing.JButton" binding="registAkunButton" default-binding="true">
             <constraints>
-              <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="0.0" weighty="0.0"/>
+              <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
+              <gridbag top="5" left="5" bottom="5" right="5" weightx="0.05" weighty="1.0"/>
             </constraints>
             <properties>
               <background color="-12301861"/>
@@ -105,6 +93,22 @@
               <focusable value="false"/>
               <foreground color="-1710883"/>
               <text value="Regist Akun"/>
+            </properties>
+          </component>
+          <component id="50d2d" class="javax.swing.JButton" binding="buttonBack">
+            <constraints>
+              <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
+              <gridbag top="8" left="8" bottom="8" right="8" weightx="0.2" weighty="0.4"/>
+            </constraints>
+            <properties>
+              <background color="-13330213"/>
+              <borderPainted value="false"/>
+              <contentAreaFilled value="true"/>
+              <focusPainted value="false"/>
+              <focusable value="false"/>
+              <font name="JetBrains Mono" size="16" style="1"/>
+              <foreground color="-5122"/>
+              <text value="Login Back-End"/>
             </properties>
           </component>
         </children>
@@ -612,7 +616,7 @@
                   </component>
                   <component id="55c88" class="javax.swing.JLabel">
                     <constraints>
-                      <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
                       <gridbag top="5" left="5" bottom="5" right="5" weightx="0.3" weighty="0.0"/>
                     </constraints>
                     <properties>
@@ -675,8 +679,8 @@
                   </component>
                   <component id="d2bef" class="javax.swing.JLabel" binding="akunTier">
                     <constraints>
-                      <grid row="7" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                      <gridbag weightx="1.0" weighty="0.0"/>
+                      <grid row="7" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="1.0" weighty="0.0"/>
                     </constraints>
                     <properties>
                       <text value="Label"/>
@@ -759,8 +763,8 @@
                   </component>
                   <component id="71e7a" class="javax.swing.JLabel" binding="akunBenefit">
                     <constraints>
-                      <grid row="7" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                      <gridbag weightx="0.0" weighty="0.0"/>
+                      <grid row="7" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="0.0" weighty="0.0"/>
                     </constraints>
                     <properties>
                       <text value="Label"/>
@@ -768,8 +772,8 @@
                   </component>
                   <component id="69bed" class="javax.swing.JLabel" binding="JudulAkun">
                     <constraints>
-                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
-                      <gridbag top="5" left="5" bottom="5" right="5" weightx="0.0" weighty="0.0"/>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="10" fill="0" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="0.0" weighty="1.0"/>
                     </constraints>
                     <properties>
                       <font size="18"/>
@@ -778,6 +782,31 @@
                       <text value="Informasi Akun"/>
                       <verticalAlignment value="1"/>
                       <verticalTextPosition value="1"/>
+                    </properties>
+                  </component>
+                  <grid id="82d3f" layout-manager="BorderLayout" hgap="0" vgap="0">
+                    <constraints>
+                      <grid row="0" column="3" row-span="9" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                      <gridbag weightx="6.0" weighty="0.0"/>
+                    </constraints>
+                    <properties>
+                      <background color="-12762558"/>
+                    </properties>
+                    <border type="none"/>
+                    <children/>
+                  </grid>
+                  <component id="b6e05" class="javax.swing.JButton" binding="logoutButton" default-binding="true">
+                    <constraints>
+                      <grid row="8" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
+                      <gridbag top="5" left="5" bottom="5" right="5" weightx="0.0" weighty="1.0"/>
+                    </constraints>
+                    <properties>
+                      <background color="-4579553"/>
+                      <borderPainted value="false"/>
+                      <focusPainted value="false"/>
+                      <focusable value="false"/>
+                      <foreground color="-1"/>
+                      <text value="Logout"/>
                     </properties>
                   </component>
                 </children>

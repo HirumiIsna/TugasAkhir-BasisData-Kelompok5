@@ -52,7 +52,6 @@ public class App extends JFrame {
     private JButton buttonBack;
     private JTabbedPane tabbedPane1;
     private JTabbedPane tabbedPane2;
-    private JTextField textField1;
     private JTextField textFieldFront;
     private JButton registAkunButton;
     private JPanel RegistP;
@@ -267,6 +266,7 @@ public class App extends JFrame {
     private JButton simpanButtonPoinHistory;
     private JButton refreshDataButtonPoinHistory;
     private JTable TabelManagePoinHistory;
+    private JButton logoutButton;
 
     // Untuk mode create varian
     private JTextField TF_IDProdukVarian;
@@ -742,6 +742,12 @@ public class App extends JFrame {
                     TF_AlamatPelanggan.setText(TabelManagePelanggan.getValueAt(row, 4).toString());
                 }
             }
+        });
+
+        logoutButton.addActionListener((e) -> {
+            c1.show(MainPanel, "pageUtama");
+            loggedinuserNama = "";
+            loggedinUserID = "";
         });
 
         setVisible(true);
