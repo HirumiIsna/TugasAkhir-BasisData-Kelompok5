@@ -1975,5 +1975,7 @@
                 </children>
             </grid>
         </children>
-    </grid>
+      </grid>
+    </children>
+  </grid>
 </form>
