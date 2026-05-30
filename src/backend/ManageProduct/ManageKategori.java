@@ -5,7 +5,7 @@ import javax.swing.table.DefaultTableModel;
 import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
-import src.database.KategoriDAO;
+import src.backend.database.KategoriDAO;
 
 public class ManageKategori {
     private KategoriDAO kategoriDAO;

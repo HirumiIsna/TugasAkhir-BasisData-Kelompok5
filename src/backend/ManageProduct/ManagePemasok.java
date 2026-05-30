@@ -5,7 +5,7 @@ import javax.swing.table.DefaultTableModel;
 import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
-import src.database.PemasokDAO;
+import src.backend.database.PemasokDAO;
 
 public class ManagePemasok {
     private PemasokDAO pemasokDAO;
