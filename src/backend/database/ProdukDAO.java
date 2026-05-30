@@ -16,6 +16,7 @@ public class ProdukDAO {
     }
 
     public ProdukDAO(Connection conn) {
+        System.out.println("DAO Connection");
         this.conn = conn;
         this.relasiDAO = new ProdukMempunyaiKategoriDAO(conn);
     }
