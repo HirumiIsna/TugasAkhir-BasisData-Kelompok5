@@ -1,6 +1,7 @@
 package src;
 
 import java.awt.*;
+import java.sql.*;
 import java.util.List;
 import java.util.Map;
 import javax.swing.*;
@@ -18,9 +19,11 @@ import src.backend.ManageProduct.ManageVarian;
 import src.backend.ManagePromo.ManageTierLoyalitas;
 import src.backend.ManagePromo.ManageVoucher;
 import src.backend.database.*;
+import src.FrontEnd.*;
+import java.util.*;
 
 public class App extends JFrame {
-    DefaultTableModel tb1;
+    DefaultTableModel tb1, tb2, tb3;
 
     // DAO
     private PelangganDAO pelangganDAO;
@@ -30,6 +33,7 @@ public class App extends JFrame {
     // User
     String loggedinUserID;
     String loggedinuserNama;
+    Connection conn = DatabaseConnection.getConnection();
 
     // Komponen
     private JPanel MainPanel;
@@ -69,6 +73,44 @@ public class App extends JFrame {
     private JTable table1;
     private JTabbedPane tabbedPane2;
     private JTextArea ID;
+    private JTable table2;
+    private JLabel welcome;
+    private JTextField filterTF;
+    private JComboBox<String> kategoriCB;
+    private JComboBox<String> merkCB;
+    private JLabel cariLB;
+    private JLabel kategoriLB;
+    private JLabel merkLB;
+    private JButton tambahKeKeranjangButton;
+    private JButton cariFilter;
+    private JSpinner jumlahSelected;
+    private JTable tableKeranjang;
+    private JLabel LBjumlah;
+    private JSpinner spinnerJumlah;
+    private JScrollPane JKeranjang;
+    private JButton deleteSelectedButton;
+    private JButton deleteAllButton;
+    private JTextArea taAlamat;
+    private JComboBox cbEkspedisi;
+    private JComboBox cbPengiriman;
+    private JButton checkoutButton;
+    private JComboBox cbMethod;
+    private JTextField tfVoucher;
+    private JLabel TFtotal;
+    private JLabel lbOngkir;
+    private JLabel lbMethod1;
+    private JLabel lbMethod2;
+    private JComboBox cbOpsi;
+    private JTextField tfOpsi;
+    private JLabel TierInfo;
+    private JPanel TransaksiHistory;
+
+    // Frontend
+    private LoginManager loginManager;
+    private UserManager userManager;
+    private CatalogManager catalogManager;
+    private CartManager cartManager;
+    private CheckoutManager checkoutManager;
 
     // Backend
     private ManageProduk manageProduk;
@@ -85,6 +127,11 @@ public class App extends JFrame {
     private ManageTierLoyalitas manageTierLoyalitas;
     private ManageEkspedisi manageEkspedisi;
     private ManagePengiriman managePengiriman;
+
+    // Data
+    ArrayList<Object[]> katalogItem = new ArrayList<>();
+    ArrayList<Object[]> keranjangItem = new ArrayList<>();
+    ArrayList<Object[]> dataPengantar = new ArrayList<>();
 
     // Komponen GUI Produk (yang sudah ada di form)
     // GUI Produk
@@ -275,6 +322,11 @@ public class App extends JFrame {
         manageTierLoyalitas = new ManageTierLoyalitas(DatabaseConnection.getConnection(), this::refreshAllTabs);
         manageEkspedisi     = new ManageEkspedisi(DatabaseConnection.getConnection(), this::refreshAllTabs);
         managePengiriman    = new ManagePengiriman(DatabaseConnection.getConnection(), this::refreshAllTabs);
+        loginManager = new LoginManager(this);
+        userManager = new UserManager(this, conn);
+        catalogManager = new CatalogManager(this, conn, katalogItem, tb2);
+        cartManager = new CartManager(this, keranjangItem, tb3);
+        checkoutManager = new CheckoutManager(this, conn, keranjangItem, dataPengantar);
 
         // ==================== TAMBAHKAN TAB BARU ====================
         try {
@@ -1169,7 +1221,7 @@ public class App extends JFrame {
         else JOptionPane.showMessageDialog(this, "Gagal mengupdate data!", "Error", JOptionPane.ERROR_MESSAGE);
     }
 
-    private void refreshDataPengguna() {
+    public void refreshDataPengguna() {
         int index = tabbedPane1.getSelectedIndex();
         if (index == 3) {
             List<Map<String, Object>> historyList = poinHistoryDAO.getByPelangganId(loggedinUserID);
@@ -1240,6 +1292,10 @@ public class App extends JFrame {
         c1.show(MainPanel, "Front");
     }
 
+    public void refreshHarga() {
+        checkoutManager.refreshHarga();
+    }
+
     public static void main(String[] args) {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -1248,4 +1304,40 @@ public class App extends JFrame {
         }
         new App();
     }
+
+    // fix setter getter merge
+    public void setLoggedinUserID(String id) { this.loggedinUserID = id; }
+    public void setLoggedinuserNama(String nama) { this.loggedinuserNama = nama; }
+    public String getLoggedinUserID() { return loggedinUserID; }
+    public String getLoggedinuserNama() { return loggedinuserNama; }
+    public void setWelcomeText(String text) { welcome.setText(text); }
+    public void showFrontPanel() { c1.show(MainPanel, "Front"); }
+    public JTabbedPane getTabbedPane() { return tabbedPane1; }
+
+    public void setAkunID(String text) { akunID.setText(text); }
+    public void setAkunNama(String text) { akunNama.setText(text); }
+    public void setAkunEmail(String text) { akunEmail.setText(text); }
+    public void setAkunTelp(String text) { akunTelp.setText(text); }
+    public void setAkunCreated(String text) { akunCreated.setText(text); }
+    public void setAkunAlamat(String text) { akunAlamat.setText(text); }
+    public void setAkunTier(String text) { akunTier.setText(text); }
+    public void setAkunBenefit(String text) { akunBenefit.setText(text); }
+
+    public void setTFtotal(String text) { TFtotal.setText(text); }
+    public void setLbOngkir(String text) { lbOngkir.setText(text); }
+    public String getCbPengirimanSelectedItem() { return (String) cbPengiriman.getSelectedItem(); }
+    public String getCbMethodSelectedItem() { return (String) cbMethod.getSelectedItem(); }
+    public String getCbOpsiSelectedItem() { return (String) cbOpsi.getSelectedItem(); }
+    public String getCbEkspedisiSelectedItem() { return (String) cbEkspedisi.getSelectedItem(); }
+    public String getTfOpsiText() { return tfOpsi.getText(); }
+    public String getTfVoucherText() { return tfVoucher.getText(); }
+    public String getTaAlamatText() { return taAlamat.getText(); }
+    public String getLbMethod1Text() { return lbMethod1.getText(); }
+    public void setTaAlamatEditable(boolean editable) { taAlamat.setEditable(editable); }
+    public void setTaAlamatText(String text) { taAlamat.setText(text); }
+    public void clearCbEkspedisi() { cbEkspedisi.removeAllItems(); }
+    public void addCbEkspedisiItem(String item) { cbEkspedisi.addItem(item); }
+
+    public JComboBox<String> getKategoriCB() { return kategoriCB; }
+    public JComboBox<String> getMerkCB() { return merkCB; }
 }

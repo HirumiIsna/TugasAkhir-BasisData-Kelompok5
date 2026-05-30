@@ -7,6 +7,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.*;
 import java.text.DecimalFormat;
+import src.backend.database.DatabaseConnection;
 
 public class TransactionView {
     private final App app;
@@ -107,7 +108,7 @@ public class TransactionView {
 
     private void loadTransactionsToContainer(JPanel container, String query) {
         container.removeAll();
-        try (PreparedStatement ps = app.getConnection().prepareStatement(query)) {
+        try (PreparedStatement ps = DatabaseConnection.getConnection().prepareStatement(query)) {
             ps.setString(1, app.getLoggedinUserID());
             try (ResultSet rs = ps.executeQuery()) {
                 boolean hasData = false;
@@ -189,7 +190,7 @@ public class TransactionView {
                 "JOIN Produk p ON vp.id_produk = p.id_produk " +
                 "WHERE dt.id_transaksi = ?";
 
-        try (PreparedStatement ps = app.getConnection().prepareStatement(detailQuery)) {
+        try (PreparedStatement ps = DatabaseConnection.getConnection().prepareStatement(detailQuery)) {
             ps.setString(1, idTransaksi);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {

@@ -1,7 +1,7 @@
 package src.FrontEnd;
 
 import src.App;
-import src.configLoginSql;
+import src.backend.database.DatabaseConnection;
 
 import javax.swing.*;
 import java.sql.*;
@@ -13,7 +13,7 @@ public class LoginManager {
 
     public LoginManager(App app) {
         this.app = app;
-        this.conn = configLoginSql.setConnection();
+        this.conn = DatabaseConnection.getConnection();
     }
 
     public Connection getConnection() {

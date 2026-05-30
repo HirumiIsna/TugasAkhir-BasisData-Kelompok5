@@ -5,13 +5,14 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DatabaseConnection {
-    private static final String URL = "jdbc:sqlserver://localhost:1433;databaseName=matahari2;encrypt=true;trustServerCertificate=true";
+    private static final String URL = "jdbc:sqlserver://localhost:1433;databaseName=matahari100;encrypt=true;trustServerCertificate=true";
     private static final String USERNAME = "sa";
-    private static final String PASSWORD = "password";
+    private static final String PASSWORD = "hilmi212";
 
     private static Connection connection = null;
 
     public static Connection getConnection() {
+        System.out.println("Get Connection!");
         if (connection == null) {
             try {
                 connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
